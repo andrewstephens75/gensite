@@ -5,30 +5,55 @@ from markdown.util import etree
 import re
 
 MARGINNOTEPATTERN = r'[^\*]\[\-\>([^\]]+)\]'
-FOOTNOTEPATTERN = r'\*\[\-\>([^\]]+)\]'
+SIDENOTEPATTERN = r'\*\[\-\>([^\]]+)\]'
 
-class TafteMargin(Pattern):
+class TufteMargin(Pattern):
     def handleMatch(self, m):
         el = etree.Element('span')
         el.set("class", "importantmarginnote")
         el.text = m.group(2)
         return el
 
-class TafteFootnote(Pattern):
+class TufteSidenote(Pattern):
     def handleMatch(self, m):
-        el = etree.Element('tafte-footnote-element')
+        el = etree.Element('span')
+        el.set("class", "sidenote")
         el.text = m.group(2)
         return el
+
+class TufteSidenoteTreeProcessor(Treeprocessor):
+    def __init__(self):
+        self.count = 1
+    
+    def run(self, root):
+        parents = root.findall(".//span[@class='sidenote']/..")
+        for parent in parents:
+            self.count = 1
+            for p in parents:
+                children = p.getchildren()
+                p.clear()
+                for c in children:
+                    if (c.tag == 'span') and (c.get('class', "") == 'sidenote'):
+                        id = "sidenote" + str(self.count)
+                        self.count = self.count + 1
+                        p.append(etree.Element("label", {"for" : id, "class" : "margin-toggle sidenote-number"}))
+                        p.append(etree.Element("input", {"type": "checkbox", "id": id, "class" : "sidenote"}))
+                    p.append(c)
+    
+            
+            
 
 class TufteAsideExtension(Extension):
     """ Extenstion to build Tufte-style margin notes
         [* This is a margin note that will go in the margin *] """
     def extendMarkdown(self, md, md_globals):
 
-        tafte_magin_tag = TafteMargin(MARGINNOTEPATTERN)
-        tafte_footnote_tag = TafteFootnote(FOOTNOTEPATTERN)
-        md.inlinePatterns.add('tufte_margin', tafte_magin_tag, '_begin')
-        md.inlinePatterns.add('tufte_footnote', tafte_footnote_tag, '_begin')
+        tufte_magin_tag = TufteMargin(MARGINNOTEPATTERN)
+        tufte_sidenote_tag = TufteSidenote(SIDENOTEPATTERN)
+        turfe_sidenote_tree = TufteSidenoteTreeProcessor()
+        md.inlinePatterns.add('tufte_margin', tufte_magin_tag, '_begin')
+        md.inlinePatterns.add('tufte_sidenote', tufte_sidenote_tag, '_begin')
+        md.treeprocessors.add('tufte_sidenote_tree', turfe_sidenote_tree, '_end')
         pass
     
         
