@@ -1,11 +1,19 @@
+# Markdown extension that allows Tufte-style asides (in conjuction with
+# the tufte.css
+# Supported syntax:
+# ->[This is a margin note. It will be placed next to the main text]
+# +->[This is a side note. It will be placed next the main text with a reference number]
+
+
 from markdown.extensions import Extension
 from markdown.inlinepatterns import Pattern
 from markdown.treeprocessors import Treeprocessor
 from markdown.util import etree
 import re
 
-MARGINNOTEPATTERN = r'[^\*]\[\-\>([^\]]+)\]'
-SIDENOTEPATTERN = r'\*\[\-\>([^\]]+)\]'
+
+MARGINNOTEPATTERN = r'[^\+]\-\>\[([^\]]+)\]'   # matches ->[margin note]
+SIDENOTEPATTERN = r'\+\-\>\[([^\]]+)\]'        # matches +->[side note]
 
 class TufteMargin(Pattern):
     def handleMatch(self, m):
@@ -26,18 +34,24 @@ class TufteSidenoteTreeProcessor(Treeprocessor):
         self.count = 1
     
     def run(self, root):
+        # etree sucks for modifying the tree mainly because there are no text
+        # nodes, only nodes with tails. Here I remove all children of the parent 
+        # and add them back one-by-one, inserting the required labels 
+        # and checkboxs where needed
         parents = root.findall(".//span[@class='sidenote']/..")
         for parent in parents:
             self.count = 1
             for p in parents:
-                children = p.getchildren()
-                p.clear()
+                children = list(p)
+                for c in children:
+                    p.remove(c)
+                
                 for c in children:
                     if (c.tag == 'span') and (c.get('class', "") == 'sidenote'):
                         id = "sidenote" + str(self.count)
                         self.count = self.count + 1
                         p.append(etree.Element("label", {"for" : id, "class" : "margin-toggle sidenote-number"}))
-                        p.append(etree.Element("input", {"type": "checkbox", "id": id, "class" : "sidenote"}))
+                        p.append(etree.Element("input", {"type": "checkbox", "id": id, "class" : "margin-toggle"}))
                     p.append(c)
     
             

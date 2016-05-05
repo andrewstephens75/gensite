@@ -3,6 +3,7 @@ import os
 import os.path
 import json
 import io
+from markdown_extensions import tufte_aside
 
 class CompileError(Exception):
     def __init__(self, message, file_name):
@@ -120,7 +121,7 @@ class GenSiteTemplate:
         if (template_type != "article"):
             raise CompileError("Unknown template type: " + template_type, sourceFileDef.file_name)
 
-        article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code"])
+        article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension()])
         html_source = self.article_template.contents
         html_source = html_source.replace("{{article_content}}", article_text)
         html_source = html_source.replace("{{title}}", title)
