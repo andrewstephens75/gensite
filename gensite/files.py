@@ -34,14 +34,12 @@ def get_files_in_dir(startPath):
     while len(working) > 0:
         current = working.pop(0)
         p = os.path.join(startPath, current)
-        print("scanning " + p)
         if (os.path.isfile(p)):
             results.append(current)
         if (os.path.isdir(p)):
             for de in os.scandir(p):
                 if de.name.startswith("."):
                     continue
-                print(de.name)
                 working.append(os.path.join(current, de.name))
     return results
 
@@ -78,13 +76,14 @@ class FileDef:
         """ But only if the modification date is earlier than the existing file """
         dest_file = destDir
         if self.relative_path != "":
-            os.path.join(destDir, self.relative_path)
+            dest_file = os.path.join(destDir, self.relative_path)
+            print(self.file_name + " --> " + dest_file)
         os.makedirs(dest_file, exist_ok=True)
         dest_file = os.path.join(dest_file, os.path.split(self.file_name)[-1])
         dest_time = 0
         if (os.path.exists(dest_file)):
             dest_time = os.path.getmtime(dest_file)
-        if (self.mod_time < dest_time):
+        if (dest_time == 0 or self.mod_time < dest_time):
             shutil.copy2(self.file_name, dest_file)
         
 
@@ -151,7 +150,7 @@ class GenSiteTemplate:
             else:
                 dir_files = get_files_in_dir(path)
                 for d in dir_files:
-                    self.static_files.append(FileDef(os.path.join(path, d), cache=False, relative_path=os.path.split(d)[0]))
+                    self.static_files.append(FileDef(os.path.join(path, d), cache=False, relative_path=os.path.join(f, os.path.split(d)[0])))
         print("Template loaded with " + str(len(self.static_files)) + " static files")
 
 
@@ -181,7 +180,6 @@ class GenSiteTemplate:
     def copy_template_files(self, destDir):
         print("Copying template files:")
         for f in self.static_files:
-            print("  " + f.file_name)
             f.copy_if_required(destDir)
 
 def gather_source_files(topdir, extensions):
