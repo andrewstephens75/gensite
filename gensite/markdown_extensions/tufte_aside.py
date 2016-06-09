@@ -39,20 +39,19 @@ class TufteSidenoteTreeProcessor(Treeprocessor):
         # and add them back one-by-one, inserting the required labels 
         # and checkboxs where needed
         parents = root.findall(".//span[@class='sidenote']/..")
-        for parent in parents:
-            self.count = 1
-            for p in parents:
-                children = list(p)
-                for c in children:
-                    p.remove(c)
-                
-                for c in children:
-                    if (c.tag == 'span') and (c.get('class', "") == 'sidenote'):
-                        id = "sidenote" + str(self.count)
-                        self.count = self.count + 1
-                        p.append(etree.Element("label", {"for" : id, "class" : "margin-toggle sidenote-number"}))
-                        p.append(etree.Element("input", {"type": "checkbox", "id": id, "class" : "margin-toggle"}))
-                    p.append(c)
+        self.count = 1
+        for p in parents:
+            children = list(p)
+            for c in children:
+                p.remove(c)
+            
+            for c in children:
+                if (c.tag == 'span') and (c.get('class', "") == 'sidenote'):
+                    id = "sidenote" + str(self.count)
+                    self.count = self.count + 1
+                    p.append(etree.Element("label", {"for" : id, "class" : "margin-toggle sidenote-number"}))
+                    p.append(etree.Element("input", {"type": "checkbox", "id": id, "class" : "margin-toggle"}))
+                p.append(c)
     
             
             
