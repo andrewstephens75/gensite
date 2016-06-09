@@ -77,14 +77,16 @@ class FileDef:
         dest_file = destDir
         if self.relative_path != "":
             dest_file = os.path.join(destDir, self.relative_path)
-            print(self.file_name + " --> " + dest_file)
         os.makedirs(dest_file, exist_ok=True)
         dest_file = os.path.join(dest_file, os.path.split(self.file_name)[-1])
         dest_time = 0
         if (os.path.exists(dest_file)):
             dest_time = os.path.getmtime(dest_file)
-        if (dest_time == 0 or self.mod_time < dest_time):
+        if (dest_time == 0 or self.mod_time > dest_time):
+            print("  copied " + dest_file)
             shutil.copy2(self.file_name, dest_file)
+            return True
+        return False
         
 
 class SourceFileDef(FileDef):
@@ -178,9 +180,11 @@ class GenSiteTemplate:
             f.write(html_source)
 
     def copy_template_files(self, destDir):
-        print("Copying template files:")
+        num_copied = 0
         for f in self.static_files:
-            f.copy_if_required(destDir)
+            if f.copy_if_required(destDir):
+                num_copied += 1
+        print("Copied " + str(num_copied) + " modified template files")
 
 def gather_source_files(topdir, extensions):
     """ returns a list of files that will be processed """

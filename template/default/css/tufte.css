@@ -1,6 +1,5 @@
 /* Import ET Book styles
    adapted from https://github.com/edwardtufte/et-book/blob/gh-pages/et-book.css */
-
 @charset "UTF-8";
 
 @font-face {
@@ -74,7 +73,7 @@ p.subtitle { font-style: italic;
              font-size: 1.8rem;
              display: block;
              line-height: 1; }
-
+ 
 .numeral { font-family: et-book-roman-old-style; }
 
 .danger { color: red; }
