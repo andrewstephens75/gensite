@@ -1,6 +1,6 @@
 {
   "source_dir" : ".",
-  "destination_dir" : "../webdest",
-  "template_dir" : "../template"
+  "destination_dir" : "../webbuild",
+  "template" : "../template/default"
 }
 
