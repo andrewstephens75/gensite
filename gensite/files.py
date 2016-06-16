@@ -129,6 +129,13 @@ class SourceFileDef(FileDef):
     def dest_files(self):
         """ return a list of filenames that this file requires """
         return [self.file_name]
+
+    def dest_file_name(self):
+            t = time.gmtime();
+            p = os.path.join(str(t.tm_year), str(t.tm_mon))
+            p = os.path.join(p, self.output_filename + ".html")
+            return p
+        
     
     
 class GenSiteTemplate:
@@ -163,7 +170,17 @@ class GenSiteTemplate:
         author = header["author"]
         template_type = header["template_type"]
 
-        outputFileDef = FileDef(os.path.join(destDir, make_filename_safe_title(title) + ".html"))
+        dest_file_path = os.path.join(destDir, sourceFileDef.dest_file_name())
+        dest_file_dir = os.path.split(dest_file_path)[0]
+        os.makedirs(dest_file_dir, exist_ok = True)
+        number_of_subdirs = 0
+        t = sourceFileDef.dest_file_name().split(os.path.sep)
+        number_of_subdirs = len(t) - 1
+        relative_path_to_top = "/".join([".."] * number_of_subdirs)
+        if (len(relative_path_to_top) > 0):
+            relative_path_to_top += '/'
+
+        outputFileDef = FileDef(dest_file_path)
         if (sourceFileDef.older(outputFileDef)):
             return
 
@@ -175,6 +192,7 @@ class GenSiteTemplate:
         html_source = html_source.replace("{{article_content}}", article_text)
         html_source = html_source.replace("{{title}}", title)
         html_source = html_source.replace("{{author}}", author)
+        html_source = html_source.replace("{{css_relative_path}}", relative_path_to_top)
 
         with open(outputFileDef.file_name, "w", encoding="utf-8") as f:
             f.write(html_source)
