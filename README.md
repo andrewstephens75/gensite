@@ -17,3 +17,4 @@ A static webside generator written in Python 3.
 Python 3
 pip3 markdown 
 pip3 Pygments
+pip3 feedgen

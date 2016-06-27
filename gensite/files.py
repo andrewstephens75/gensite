@@ -6,6 +6,8 @@ import io
 import time
 import shutil
 from markdown_extensions import tufte_aside
+from feedgen.feed import FeedGenerator
+
 
 class CompileError(Exception):
     def __init__(self, message, file_name):
@@ -135,6 +137,9 @@ class SourceFileDef(FileDef):
             p = os.path.join(str(t.tm_year), str(t.tm_mon))
             p = os.path.join(p, self.output_filename + ".html")
             return p
+
+    def title(self):
+        return self.metadata["title"]
         
     
     
@@ -267,6 +272,29 @@ def gensite(rootdir):
         template.process_source_file(f, destdir)
     
     template.copy_template_files(destdir)
+
+    """ generate feed """
+    fg = FeedGenerator()
+    fg.id(site_config["blog_name"])
+    fg.language("en")
+    fg.title(site_config["blog_name"])
+    fg.link(href= site_config["root_url"], rel='alternate')
+    fg.description("A cool blog")
+    fg.author( {'name':'John Doe','email':'john@example.de'} )
+
+    for entry in files:
+        dest_file_name = entry.dest_file_name();
+        fe = fg.add_entry()
+        fe.id(site_config["root_url"] + dest_file_name)
+        fe.title(entry.title())
+        fe.content(src=site_config["root_url"] + dest_file_name)
+
+    fg.rss_file(os.path.join(destdir, 'rss.xml'), pretty=True)
+    fg.atom_file(os.path.join(destdir, 'atom.xml'), pretty=True)
+    
+    
+             
+    
         
 
 
