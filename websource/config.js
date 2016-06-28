@@ -4,6 +4,7 @@
   "template" : "../template/default",
   "blog_name" : "Andrew's Blog",
   "blog_description" : "A blog about stuff",
+  "blog_author" : "Andrew Stephens",
   "root_url" : "http://sheep.horse/blog/"
 }
 
