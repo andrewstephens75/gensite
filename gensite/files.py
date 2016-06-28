@@ -279,8 +279,7 @@ def gensite(rootdir):
     fg.language("en")
     fg.title(site_config["blog_name"])
     fg.link(href= site_config["root_url"], rel='alternate')
-    fg.description("A cool blog")
-    fg.author( {'name':'John Doe','email':'john@example.de'} )
+    fg.description(site_config["blog_description"])
 
     for entry in files:
         dest_file_name = entry.dest_file_name();
