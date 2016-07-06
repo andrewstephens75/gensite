@@ -255,6 +255,20 @@ label.sidenote-number { display: inline; }
 
 label.margin-toggle:not(.sidenote-number) { display: none; }
 
+div.index div.groupheading
+{
+  width: 55%;
+  border-bottom: 0.5px gray solid;
+  color: grey;
+  font-size: 1.2rem;
+}
+
+div.index div.group li
+{
+
+}
+
+
 @media (max-width: 760px) { label.margin-toggle:not(.sidenote-number) { display: inline; }
                             .sidenote, .marginnote { display: none; }
                             .margin-toggle:checked + .sidenote,

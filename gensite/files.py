@@ -133,10 +133,19 @@ class SourceFileDef(FileDef):
         return [self.file_name]
 
     def dest_file_name(self):
+        t = self.template_type()
+        if t == "article":
             t = time.gmtime();
             p = os.path.join(str(t.tm_year), str(t.tm_mon))
             p = os.path.join(p, self.output_filename + ".html")
             return p
+        elif t == "index":
+            return "index.html"
+        else:
+            raise CompileError("Unknown template type " + t, self.file_name)
+
+    def template_type(self):
+        return self.metadata["template_type"]
 
     def title(self):
         return self.metadata["title"]
@@ -152,10 +161,13 @@ class GenSiteTemplate:
         with open(os.path.join(self.template_path, "config.js"), encoding='utf-8') as f:
             config = json.load(f)
 
-        # load the prefixes and sufixes into memory
-        article = config["article"]
-        self.article_template = FileDef(os.path.join(self.template_path, article["page_template"]), cache=True)
- 
+        # load the templates into memory
+
+        self.templates = {}
+        for t in ["article", "index"]:
+            page_template = config["templates"][t]["page_template"]
+            self.templates[t] = FileDef(os.path.join(self.template_path, page_template), cache=True)
+         
         self.static_files = []
         for f in config["static_files"]:
             path = os.path.join(template_path, f)
@@ -173,7 +185,7 @@ class GenSiteTemplate:
         header = sourceFileDef.metadata
         title = header["title"]
         author = header["author"]
-        template_type = header["template_type"]
+        template_type = sourceFileDef.template_type()
 
         dest_file_path = os.path.join(destDir, sourceFileDef.dest_file_name())
         dest_file_dir = os.path.split(dest_file_path)[0]
@@ -189,11 +201,11 @@ class GenSiteTemplate:
         if (sourceFileDef.older(outputFileDef)):
             return
 
-        if (template_type != "article"):
+        if (template_type not in self.templates):
             raise CompileError("Unknown template type: " + template_type, sourceFileDef.file_name)
 
         article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension()])
-        html_source = self.article_template.contents
+        html_source = self.templates[template_type].contents
         html_source = html_source.replace("{{article_content}}", article_text)
         html_source = html_source.replace("{{title}}", title)
         html_source = html_source.replace("{{author}}", author)
@@ -254,10 +266,10 @@ def gensite(rootdir):
 
     files = gather_source_files(sourcedir, [".md"])
     files.sort(key=lambda s: s.original_date)
-
+    
     files_to_be_regenerated = []
     for f in files:
-        output_file = os.path.join(destdir, f.output_filename)
+        output_file = os.path.join(destdir, f.dest_file_name())
         mod_time = 0
         if (os.path.exists(output_file)):
             mod_time = os.path.getmtime(output_file)

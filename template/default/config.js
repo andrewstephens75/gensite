@@ -5,11 +5,13 @@
     "author" : "Andrew Stephens"
   },
   
-  "article" : {
-    "page_template" : "article_template.html"
-  },
-  "index" : {
-    "page_template" : "article_template.html"
+  "templates" : {
+    "article" : {
+      "page_template" : "article_template.html"
+    },
+    "index" : {
+      "page_template" : "index_template.html"
+    }
   },
   "static_files" : ["css"]
 }
