@@ -7,6 +7,10 @@ import time
 import shutil
 from markdown_extensions import tufte_aside
 from feedgen.feed import FeedGenerator
+import lxml
+import lxml.html
+import lxml.etree
+
 
 
 class CompileError(Exception):
@@ -180,7 +184,7 @@ class GenSiteTemplate:
         print("Template loaded with " + str(len(self.static_files)) + " static files")
 
 
-    def process_source_file(self, sourceFileDef, destDir):
+    def process_source_file(self, sourceFileDef, destDir, additional_tags = {}):
         """ process a source file and output the files required """
         header = sourceFileDef.metadata
         title = header["title"]
@@ -211,6 +215,9 @@ class GenSiteTemplate:
         html_source = html_source.replace("{{author}}", author)
         html_source = html_source.replace("{{css_relative_path}}", relative_path_to_top)
 
+        for t,v in additional_tags.items():
+            html_source = html_source.replace("{{" + t + "}}", v)
+
         with open(outputFileDef.file_name, "w", encoding="utf-8") as f:
             f.write(html_source)
 
@@ -220,6 +227,22 @@ class GenSiteTemplate:
             if f.copy_if_required(destDir):
                 num_copied += 1
         print("Copied " + str(num_copied) + " modified template files")
+
+    def generate_index(self, all_files):
+        all_files.sort(key=lambda s: s.original_date)
+
+        index_element = html.Element("div", {"class": "index"})
+        
+        for f in all_files:
+            date = f.original_date
+            title = f.title()
+            template_type = f.template_type()
+            item = html.Element("li")
+            link = html.Element("a", {"href" : f.dest_file_name()})
+            link.text = f.title()
+            item.append(link)
+            index_element.append(item)
+        return index_element
 
 def gather_source_files(topdir, extensions):
     """ returns a list of files that will be processed """
@@ -265,10 +288,12 @@ def gensite(rootdir):
     sourcedir = os.path.join(rootdir, site_config["source_dir"])
 
     files = gather_source_files(sourcedir, [".md"])
-    files.sort(key=lambda s: s.original_date)
+
+    articles = [e for e in files if e.template_type() == "article"]
+    articles.sort(key=lambda s: s.original_date)
     
     files_to_be_regenerated = []
-    for f in files:
+    for f in articles:
         output_file = os.path.join(destdir, f.dest_file_name())
         mod_time = 0
         if (os.path.exists(output_file)):
@@ -293,7 +318,7 @@ def gensite(rootdir):
     fg.link(href= site_config["root_url"], rel='alternate')
     fg.description(site_config["blog_description"])
 
-    for entry in files:
+    for entry in articles:
         dest_file_name = entry.dest_file_name();
         fe = fg.add_entry()
         fe.id(site_config["root_url"] + dest_file_name)
@@ -303,13 +328,10 @@ def gensite(rootdir):
     fg.rss_file(os.path.join(destdir, 'rss.xml'), pretty=True)
     fg.atom_file(os.path.join(destdir, 'atom.xml'), pretty=True)
     
-    
-             
-    
-        
-
-
-
+    index_element = template.generate_index(articles)
+    index = [e for e in files if e.template_type() == "index"][0]
+    i = str(lxml.etree.tostring(index_element, pretty_print=True), "utf-8")    
+    template.process_source_file(index, destdir, {"index_content" : i})
 
     
 
