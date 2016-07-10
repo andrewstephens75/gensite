@@ -89,7 +89,6 @@ class FileDef:
         if (os.path.exists(dest_file)):
             dest_time = os.path.getmtime(dest_file)
         if (dest_time == 0 or self.mod_time > dest_time):
-            print("  copied " + dest_file)
             shutil.copy2(self.file_name, dest_file)
             return True
         return False
@@ -208,15 +207,19 @@ class GenSiteTemplate:
         if (template_type not in self.templates):
             raise CompileError("Unknown template type: " + template_type, sourceFileDef.file_name)
 
-        article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension()])
+        
         html_source = self.templates[template_type].contents
-        html_source = html_source.replace("{{article_content}}", article_text)
+        for t,v in additional_tags.items():
+            html_source = html_source.replace("{{" + t + "}}", v)
+        
+
         html_source = html_source.replace("{{title}}", title)
         html_source = html_source.replace("{{author}}", author)
         html_source = html_source.replace("{{css_relative_path}}", relative_path_to_top)
+        
+        article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension()])
+        html_source = html_source.replace("{{article_content}}", article_text)
 
-        for t,v in additional_tags.items():
-            html_source = html_source.replace("{{" + t + "}}", v)
 
         with open(outputFileDef.file_name, "w", encoding="utf-8") as f:
             f.write(html_source)
@@ -249,10 +252,7 @@ class GenSiteTemplate:
               group_element.append(header_element)
               group_element.append(list_element)
               index_element.append(group_element)
-              print("group" + time.strftime("%B %Y", current_group_date))
-
-          
-        
+     
         for f in all_files:
             date = f.original_date
             if (current_group_date == None):
@@ -272,7 +272,6 @@ class GenSiteTemplate:
             link.text = f.title()
             item.append(link)
             list_element.append(item)
-            print("Added " + f.title())
             current_group_len += 1
         emit_grouped_list(list_element)
         return index_element
@@ -339,8 +338,8 @@ def gensite(rootdir):
     print("Will generate ", str(len(files_to_be_regenerated)), "files")
 
     for f in files_to_be_regenerated:
-        print("   processing", f.metadata["title"])
-        template.process_source_file(f, destdir)
+        extra_article_tags = { "article_menu" : "<a href=\"" + site_config["relative_index"] + "\">Index</a>" }
+        template.process_source_file(f, destdir, additional_tags = extra_article_tags)
     
     template.copy_template_files(destdir)
 
