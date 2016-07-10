@@ -139,7 +139,7 @@ class SourceFileDef(FileDef):
     def dest_file_name(self):
         t = self.template_type()
         if t == "article":
-            t = time.gmtime();
+            t = self.original_date
             p = os.path.join(str(t.tm_year), str(t.tm_mon))
             p = os.path.join(p, self.output_filename + ".html")
             return p
@@ -184,7 +184,7 @@ class GenSiteTemplate:
         print("Template loaded with " + str(len(self.static_files)) + " static files")
 
 
-    def process_source_file(self, sourceFileDef, destDir, additional_tags = {}):
+    def process_source_file(self, sourceFileDef, destDir, additional_tags = {}, force_write = False):
         """ process a source file and output the files required """
         header = sourceFileDef.metadata
         title = header["title"]
@@ -202,7 +202,7 @@ class GenSiteTemplate:
             relative_path_to_top += '/'
 
         outputFileDef = FileDef(dest_file_path)
-        if (sourceFileDef.older(outputFileDef)):
+        if (sourceFileDef.older(outputFileDef) and not force_write):
             return
 
         if (template_type not in self.templates):
@@ -230,18 +230,51 @@ class GenSiteTemplate:
 
     def generate_index(self, all_files):
         all_files.sort(key=lambda s: s.original_date)
+        all_files.reverse()
 
-        index_element = html.Element("div", {"class": "index"})
+        index_element = lxml.html.Element("div", {"class": "index"})
+        
+        group_element = lxml.html.Element("div", {"class" : "group"})
+        list_element = lxml.html.Element("ul")
+        current_group_date = None
+        current_group_len = 0
+        
+        def same_month_and_year(t1, t2):
+          return ((t1.tm_year == t2.tm_year) and (t1.tm_mon == t2.tm_mon))
+          
+        def emit_grouped_list(list_element):
+              group_element = lxml.html.Element("div", {"class" : "group"})
+              header_element = lxml.html.Element("div", {"class" : "groupheading"})
+              header_element.text = time.strftime("%B %Y", current_group_date)
+              group_element.append(header_element)
+              group_element.append(list_element)
+              index_element.append(group_element)
+              print("group" + time.strftime("%B %Y", current_group_date))
+
+          
         
         for f in all_files:
             date = f.original_date
+            if (current_group_date == None):
+              current_group_date = date
+            if (not same_month_and_year(date, current_group_date) and (current_group_len != 0)):
+              # emmit the old group
+              emit_grouped_list(list_element)
+              # start a new group
+              list_element = lxml.html.Element("ul")
+              current_group_date = date
+              current_group_len = 0
+                            
             title = f.title()
             template_type = f.template_type()
-            item = html.Element("li")
-            link = html.Element("a", {"href" : f.dest_file_name()})
+            item = lxml.html.Element("li")
+            link = lxml.html.Element("a", {"href" : f.dest_file_name()})
             link.text = f.title()
             item.append(link)
-            index_element.append(item)
+            list_element.append(item)
+            print("Added " + f.title())
+            current_group_len += 1
+        emit_grouped_list(list_element)
         return index_element
 
 def gather_source_files(topdir, extensions):
@@ -291,6 +324,7 @@ def gensite(rootdir):
 
     articles = [e for e in files if e.template_type() == "article"]
     articles.sort(key=lambda s: s.original_date)
+    articles.reverse()
     
     files_to_be_regenerated = []
     for f in articles:
@@ -331,7 +365,7 @@ def gensite(rootdir):
     index_element = template.generate_index(articles)
     index = [e for e in files if e.template_type() == "index"][0]
     i = str(lxml.etree.tostring(index_element, pretty_print=True), "utf-8")    
-    template.process_source_file(index, destdir, {"index_content" : i})
+    template.process_source_file(index, destdir, additional_tags = {"index_content" : i}, force_write=True)
 
     
 
