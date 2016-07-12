@@ -287,25 +287,7 @@ def gather_source_files(topdir, extensions):
                 results.append(SourceFileDef(os.path.join(root, filename)))
     return results
 
-def create_file(baseDir, title, author):
-    """ creates a file from the template """
 
-    t = time.gmtime();
-    metadata = { "title" : title,
-                 "author" : author,
-                 "template_type" : "article",
-                 "original_date" : time.strftime("%a, %d %b %Y %H:%M:%SZ", t)
-                 }
-
-    p = os.path.join(os.path.abspath(baseDir), str(t.tm_year), str(t.tm_mon))
-    
-    os.makedirs(p, exist_ok = True)
-    p = os.path.join(p, make_filename_safe_title(title) + ".md")
-
-    with open(p, "w", encoding="utf-8") as f:
-        json.dump(metadata, f, indent="  ")
-
-    print(p, "created")
 
     
 
