@@ -97,6 +97,15 @@ def new():
 
   print(p, "created")
   
+def build():
+  user_config = read_user_config()
+  base_dir = user_config["source_dir"]
+  site_config = read_site_config(base_dir)
+  
+  files.gensite(base_dir)
+  
+
+  
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
@@ -104,5 +113,6 @@ if __name__ == "__main__":
   args = parser.parse_args()
   
   {'init' : init ,
-   'new' : new }[args.command]()
+   'new' : new,
+    'build' : build}[args.command]()
    

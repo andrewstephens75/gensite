@@ -95,8 +95,8 @@ class FileDef:
         
 
 class SourceFileDef(FileDef):
-    def __init__(self, file_name, cache=False):
-        super().__init__(file_name, cache)
+    def __init__(self, file_name, cache=False, relative_path = ""):
+        super().__init__(file_name, cache, relative_path)
         self.metadata, self.contents = self.split_header_contents()
         self.original_date = time.strptime( self.metadata["original_date"], "%a, %d %b %Y %H:%M:%SZ")
         self.output_filename = make_filename_safe_title(self.metadata["title"])
@@ -288,9 +288,6 @@ def gather_source_files(topdir, extensions):
     return results
 
 
-
-    
-
 def gensite(rootdir):
     """ reads the site config, loads the template, and processes each file it finds """
     site_config = {}
@@ -348,6 +345,19 @@ def gensite(rootdir):
     i = str(lxml.etree.tostring(index_element, pretty_print=True), "utf-8")    
     template.process_source_file(index, destdir, additional_tags = {"index_content" : i}, force_write=True)
 
+    """ copy static files """
+    static_files = get_files_in_dir(sourcedir)
+    num_static_files = 0
+    for s in static_files:
+      t = os.path.join(sourcedir, s)
+      if (os.path.splitext(s)[1] == ".md"):
+        continue
+      if (s == "config.js"):
+        continue
+      f = FileDef(os.path.join(sourcedir, s), cache=False, relative_path=os.path.split(s)[0])
+      if f.copy_if_required(destdir):
+        num_static_files += 1
+    print("Copied " + str(num_static_files) + " static files")
     
 
                                
