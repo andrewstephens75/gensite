@@ -13,6 +13,7 @@ import json
 import io
 import time
 import files
+import subprocess
 
 class CommandError(Exception):
     def __init__(self, message):
@@ -104,15 +105,37 @@ def build():
   
   files.gensite(base_dir)
   
-
+def deploy():
+  user_config = read_user_config()
+  base_dir = user_config["source_dir"]
+  site_config = read_site_config(base_dir)
+  build_dir = site_config["destination_dir"]
+  command = user_config["deploy_command"]
+  
+  subs_command = []
+  for a in command:
+    if a == "{{build_dir}}":
+      t = build_dir
+      if (t[-1:] != "/"):
+        t = t + "/"
+      subs_command.append(t)
+    else:
+      subs_command.append(a)
+    
+  print("Running: " + str(subs_command))
+  
+  subprocess.run(subs_command)
+  
+  
   
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
-  parser.add_argument("command", choices=["init", "build", "clean", "new", "list"])
+  parser.add_argument("command", choices=["init", "build", "deploy", "clean", "new", "list"])
   args = parser.parse_args()
   
   {'init' : init ,
    'new' : new,
-    'build' : build}[args.command]()
+    'build' : build,
+    'deploy' : deploy}[args.command]()
    
