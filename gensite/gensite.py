@@ -79,22 +79,10 @@ def new():
   user_config = read_user_config()
   base_dir = user_config["source_dir"]
   site_config = read_site_config(base_dir)
+  author = site_config["blog_author"]
   title = input("Enter the title: ")
   
-  t = time.gmtime();
-  metadata = { "title" : title,
-               "author" : site_config["blog_author"],
-               "template_type" : "article",
-               "original_date" : time.strftime("%a, %d %b %Y %H:%M:%SZ", t)
-               }
-
-  p = os.path.join(os.path.abspath(base_dir), str(t.tm_year), str(t.tm_mon))
-
-  os.makedirs(p, exist_ok = True)
-  p = os.path.join(p, files.make_filename_safe_title(title) + ".md")
-
-  with open(p, "w", encoding="utf-8") as f:
-      json.dump(metadata, f, indent="  ")
+  p = gensite.create_new_article(base_dir, title, author, time.gmtime()) 
 
   print(p, "created")
   

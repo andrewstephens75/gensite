@@ -359,5 +359,22 @@ def gensite(rootdir):
         num_static_files += 1
     print("Copied " + str(num_static_files) + " static files")
     
+def create_new_article(base_dir, title, author, date, template_type = "article", initial_contents=""):
+  metadata = { "title" : title,
+               "author" : author,
+               "template_type" : "article",
+               "original_date" : time.strftime("%a, %d %b %Y %H:%M:%SZ", date),
+               "tags" : []
+               }
 
+  p = os.path.join(os.path.abspath(base_dir), str(date.tm_year), str(date.tm_mon))
+
+  os.makedirs(p, exist_ok = True)
+  p = os.path.join(p, make_filename_safe_title(title) + ".md")
+
+  with open(p, "w", encoding="utf-8") as f:
+      json.dump(metadata, f, indent="  ")
+      f.write("\n\n")
+      f.write(initial_contents)
+  return p
                                
