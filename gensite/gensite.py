@@ -82,7 +82,7 @@ def new():
   author = site_config["blog_author"]
   title = input("Enter the title: ")
   
-  p = gensite.create_new_article(base_dir, title, author, time.gmtime()) 
+  p = files.create_new_article(base_dir, title, author, time.gmtime()) 
 
   print(p, "created")
   

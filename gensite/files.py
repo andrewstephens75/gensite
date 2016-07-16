@@ -10,8 +10,7 @@ from feedgen.feed import FeedGenerator
 import lxml
 import lxml.html
 import lxml.etree
-
-
+import datetime
 
 class CompileError(Exception):
     def __init__(self, message, file_name):
@@ -287,7 +286,18 @@ def gather_source_files(topdir, extensions):
                 results.append(SourceFileDef(os.path.join(root, filename)))
     return results
 
+class UTC(datetime.tzinfo):
+    """UTC"""
 
+    def utcoffset(self, dt):
+        return datetime.timedelta(0)
+
+    def tzname(self, dt):
+        return "UTC"
+
+    def dst(self, dt):
+        return datetime.timedelta(0)
+        
 def gensite(rootdir):
     """ reads the site config, loads the template, and processes each file it finds """
     site_config = {}
@@ -333,9 +343,14 @@ def gensite(rootdir):
     for entry in articles:
         dest_file_name = entry.dest_file_name();
         fe = fg.add_entry()
-        fe.id(site_config["root_url"] + dest_file_name)
+        link = site_config["root_url"] + dest_file_name
+        fe.id(link)
         fe.title(entry.title())
+        fe.link(link={"href":link})
         fe.content(src=site_config["root_url"] + dest_file_name)
+        date = datetime.datetime.fromtimestamp(time.mktime(entry.original_date), UTC())
+        fe.published(date)
+        fe.updated(date)
 
     fg.rss_file(os.path.join(destdir, 'rss.xml'), pretty=True)
     fg.atom_file(os.path.join(destdir, 'atom.xml'), pretty=True)
