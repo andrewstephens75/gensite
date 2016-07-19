@@ -152,6 +152,12 @@ class SourceFileDef(FileDef):
     def title(self):
         return self.metadata["title"]
         
+    def publish(self):
+      if "publish" not in self.metadata:
+        return True
+      else:
+        return self.metadata["publish"]
+        
     
     
 class GenSiteTemplate:
@@ -310,7 +316,8 @@ def gensite(rootdir):
 
     files = gather_source_files(sourcedir, [".md"])
 
-    articles = [e for e in files if e.template_type() == "article"]
+    articles = [e for e in files if (e.template_type() == "article" and e.publish() == True)]
+    unpublished_articles = [e for e in files if (e.template_type() == "article" and e.publish() == False)]
     articles.sort(key=lambda s: s.original_date)
     articles.reverse()
     
@@ -373,6 +380,10 @@ def gensite(rootdir):
       if f.copy_if_required(destdir):
         num_static_files += 1
     print("Copied " + str(num_static_files) + " static files")
+    if (len(unpublished_articles) != 0):
+      print("The following files are marked as unpublished and were not processed: ")
+      for u in unpublished_articles:
+        print("  ", u.file_name)
     
 def create_new_article(base_dir, title, author, date, template_type = "article", initial_contents=""):
   metadata = { "title" : title,
