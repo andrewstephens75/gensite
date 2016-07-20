@@ -390,7 +390,8 @@ def create_new_article(base_dir, title, author, date, template_type = "article",
                "author" : author,
                "template_type" : "article",
                "original_date" : time.strftime("%a, %d %b %Y %H:%M:%SZ", date),
-               "tags" : []
+               "tags" : [],
+               "publish" : False
                }
 
   p = os.path.join(os.path.abspath(base_dir), str(date.tm_year), str(date.tm_mon))
