@@ -346,6 +346,7 @@ def gensite(rootdir):
     fg.title(site_config["blog_name"])
     fg.link(href= site_config["root_url"], rel='alternate')
     fg.description(site_config["blog_description"])
+    fg.ttl(6 * 60)
 
     for entry in articles:
         dest_file_name = entry.dest_file_name();
