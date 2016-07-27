@@ -48,6 +48,29 @@ def get_files_in_dir(startPath):
                 working.append(os.path.join(current, de.name))
     return results
 
+def pretty_date(d):
+  """ returns a html formatted pretty date """
+  sub = ""
+  digit = (d.tm_mday % 10)
+  if digit == 1:
+    sub = "st"
+  elif digit == 2:
+    sub = "nd"
+  elif digit == 3:
+    sub = "rd"
+  else:
+    sub = "th"
+  
+  sub = "<sup>" + sub + "</sup>"
+  
+  day = time.strftime("%A", d)
+  month = time.strftime("%B", d)
+  
+  return day + " the " + str(d.tm_mday) + sub + " of " + month + ", " + str(d.tm_year)
+  
+
+  
+
 
 class FileDef:
     """ Stores file name and modification date """
@@ -220,6 +243,8 @@ class GenSiteTemplate:
 
         html_source = html_source.replace("{{title}}", title)
         html_source = html_source.replace("{{author}}", author)
+        html_source = html_source.replace("{{pretty_date}}", pretty_date(sourceFileDef.original_date))
+        
         html_source = html_source.replace("{{css_relative_path}}", relative_path_to_top)
         
         article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension()])

@@ -93,6 +93,13 @@ p.subtitle { font-style: italic;
              font-size: 1.8rem;
              display: block;
              line-height: 1; }
+             
+p.byline {
+             line-height: 1rem;
+             margin-top: -1.1rem;
+             margin-bottom: 0rem;
+             font-size: 1rem;
+             font-style: italic; }
  
 .numeral { font-family: et-book-roman-old-style; }
 
