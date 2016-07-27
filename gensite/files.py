@@ -50,26 +50,18 @@ def get_files_in_dir(startPath):
 
 def pretty_date(d):
   """ returns a html formatted pretty date """
-  sub = ""
-  digit = (d.tm_mday % 10)
-  if digit == 1:
-    sub = "st"
-  elif digit == 2:
-    sub = "nd"
-  elif digit == 3:
-    sub = "rd"
-  else:
-    sub = "th"
+  special_suffixs = {1 : "st", 2 : "nd" , 3 : "rd", 21 : "st", 22 : "nd", 23 : "rd", 31 : "st"}
+  suffix = "th"
   
-  sub = "<sup>" + sub + "</sup>"
+  if d.tm_mday in special_suffixs:
+    suffix = special_suffixs[d.tm_mday]
+  
+  suffix = "<sup>" + suffix + "</sup>"
   
   day = time.strftime("%A", d)
   month = time.strftime("%B", d)
   
-  return day + " the " + str(d.tm_mday) + sub + " of " + month + ", " + str(d.tm_year)
-  
-
-  
+  return day + " the " + str(d.tm_mday) + suffix + " of " + month + ", " + str(d.tm_year)
 
 
 class FileDef:
