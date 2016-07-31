@@ -37,23 +37,34 @@
 /* Tufte CSS styles */
 html { font-size: 14px; }
 
-header
+header 
 {
   position: absolute;
-  color: #a5a5a0;
+  color: #FFFFFF;
+  background-color: #000000;
+  height: 1.2rem;
   width: 100%;
   top: 0px;
   left: 0px;
-
+  z-index: 100;
 }
 
-header .menu
+nav 
 {
   position: relative;
-  color: #a5a5a0;
-  width: 10%;
-  margin-left: auto;
-  margin-right: auto;
+  height: 1rem;
+}
+
+nav span.menu
+{
+  margin-left: 10px;
+}
+
+nav a:link
+{
+  text-shadow: none;
+  text-decoration: underline;
+  background: none;
 }
 
 

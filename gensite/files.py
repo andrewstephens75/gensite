@@ -321,6 +321,28 @@ class UTC(datetime.tzinfo):
     def dst(self, dt):
         return datetime.timedelta(0)
         
+def generate_navigation_header(site_config):
+  """ generates the navigation header """
+  
+  menu_items = site_config["navigation_menu"]
+  nav_tag = lxml.etree.Element("nav")
+  
+  for i in menu_items:
+    name = i["title"]
+    href = i["href"]
+    span_tag = lxml.etree.Element("span")
+    span_tag.set("class", "menu")
+    link_tag = lxml.etree.Element("a")
+    link_tag.set("href", href)
+    link_tag.text = name
+    span_tag.append(link_tag)
+    nav_tag.append(span_tag)
+    
+  return lxml.etree.tostring(nav_tag).decode("utf-8")
+    
+    
+  
+        
 def gensite(rootdir):
     """ reads the site config, loads the template, and processes each file it finds """
     site_config = {}
@@ -349,9 +371,11 @@ def gensite(rootdir):
             files_to_be_regenerated.append(f)
 
     print("Will generate ", str(len(files_to_be_regenerated)), "files")
-
+    
+    article_menu =  generate_navigation_header(site_config)
+    
     for f in files_to_be_regenerated:
-        extra_article_tags = { "article_menu" : "<a href=\"" + site_config["relative_index"] + "\">Index</a>" }
+        extra_article_tags = { "article_menu" : article_menu }
         template.process_source_file(f, destdir, additional_tags = extra_article_tags)
     
     template.copy_template_files(destdir)

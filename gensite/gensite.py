@@ -68,7 +68,7 @@ def read_site_config(site_dir):
   
   site_config_file = os.path.join(site_dir, "config.js")
   if not os.path.exists(site_config_file):
-    raise CommandError("Not site config file exists : " + site_config_file)
+    raise CommandError("No site config file exists : " + site_config_file)
     
   with open(site_config_file, "r", encoding="utf-8") as f:
     site_config = json.load(f)
