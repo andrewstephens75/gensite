@@ -6,6 +6,7 @@ import io
 import time
 import shutil
 from markdown_extensions import tufte_aside
+from markdown_extensions import tufte_figure
 from feedgen.feed import FeedGenerator
 import lxml
 import lxml.html
@@ -26,7 +27,8 @@ def make_filename_safe_title(s):
                "#": "",
                ">" : "",
                "<" : "",
-               ":": "-"}
+               ":": "-",
+               "&" : ""}
     for k, v in illegal.items():
         s = s.replace(k, v)
     s = s.lower()
@@ -239,7 +241,7 @@ class GenSiteTemplate:
         
         html_source = html_source.replace("{{css_relative_path}}", relative_path_to_top)
         
-        article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension()])
+        article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension(), tufte_figure.TufteFigureExtension()])
         html_source = html_source.replace("{{article_content}}", article_text)
 
 
