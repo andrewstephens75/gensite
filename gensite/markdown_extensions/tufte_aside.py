@@ -12,7 +12,7 @@ from markdown.util import etree
 import re
 
 
-MARGINNOTEPATTERN = r'[^\+]\-\>\[([^\]]+)\]'   # matches ->[margin note]
+MARGINNOTEPATTERN = r'\-\>\[([^\]]+)\]'   # matches ->[margin note]
 SIDENOTEPATTERN = r'\+\-\>\[([^\]]+)\]'        # matches +->[side note]
 
 class TufteMargin(Pattern):
@@ -58,7 +58,7 @@ class TufteSidenoteTreeProcessor(Treeprocessor):
 
 class TufteAsideExtension(Extension):
     """ Extenstion to build Tufte-style margin notes
-        [* This is a margin note that will go in the margin *] """
+        ->[This is a margin note that will go in the margin] """
     def extendMarkdown(self, md, md_globals):
 
         tufte_magin_tag = TufteMargin(MARGINNOTEPATTERN)
