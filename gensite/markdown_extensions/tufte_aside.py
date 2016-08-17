@@ -9,11 +9,12 @@ from markdown.extensions import Extension
 from markdown.inlinepatterns import Pattern
 from markdown.treeprocessors import Treeprocessor
 from markdown.util import etree
+from markdown.inlinepatterns import NOBRACKET, BRK
 import re
 
 
-MARGINNOTEPATTERN = r'\-\>\[([^\]]+)\]'   # matches ->[margin note]
-SIDENOTEPATTERN = r'\+\-\>\[([^\]]+)\]'        # matches +->[side note]
+MARGINNOTEPATTERN = r'\-\>' + BRK   # matches ->[margin note]
+SIDENOTEPATTERN = r'\+\-\>' + BRK   # matches +->[side note]
 
 class TufteMargin(Pattern):
     def handleMatch(self, m):

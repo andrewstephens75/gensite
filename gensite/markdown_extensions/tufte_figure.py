@@ -24,7 +24,6 @@ class TufteFigure(BlockProcessor):
       oneLineBlock = (len(block.splitlines())== 1)
       isAlreadyInFigure = (parent.tag == 'figure')
 
-      # print(block, isImage, isOnlyOneLine, isInFigure, "T,T,F")
       if (isImage and oneLineBlock and not isAlreadyInFigure):
           return True
       else:
