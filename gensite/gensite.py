@@ -12,8 +12,10 @@ import os.path
 import json
 import io
 import time
-import files
 import subprocess
+
+import files
+import siteconfig
 
 class CommandError(Exception):
     def __init__(self, message):
@@ -44,7 +46,8 @@ def init():
     "blog_description" : "A blog about stuff",
     "blog_author" : "Andrew Stephens",
     "root_url" : "http://sheep.horse/",
-    "relative_index" : "/"
+    "relative_index" : "/",
+    "allowed_tags" : []
   }
   
   with open("config.js", "w", encoding="utf-8") as f:
@@ -62,24 +65,13 @@ def read_user_config():
   with open(user_config_file, "r", encoding="utf-8") as f:
     user_config = json.load(f)
   return user_config
-  
-def read_site_config(site_dir):
-  site_config = {}
-  
-  site_config_file = os.path.join(site_dir, "config.js")
-  if not os.path.exists(site_config_file):
-    raise CommandError("No site config file exists : " + site_config_file)
     
-  with open(site_config_file, "r", encoding="utf-8") as f:
-    site_config = json.load(f)
-  return site_config
-  
 def new():
   """ creates a file from the template """
   user_config = read_user_config()
   base_dir = user_config["source_dir"]
-  site_config = read_site_config(base_dir)
-  author = site_config["blog_author"]
+  site_config = siteconfig.SiteConfig(base_dir)
+  author = site_config.blog_author
   title = input("Enter the title: ")
   
   p = files.create_new_article(base_dir, title, author, time.gmtime()) 
@@ -89,15 +81,15 @@ def new():
 def build():
   user_config = read_user_config()
   base_dir = user_config["source_dir"]
-  site_config = read_site_config(base_dir)
+  site_config = siteconfig.SiteConfig(base_dir)
   
   files.gensite(base_dir)
   
 def deploy():
   user_config = read_user_config()
   base_dir = user_config["source_dir"]
-  site_config = read_site_config(base_dir)
-  build_dir = site_config["destination_dir"]
+  site_config = siteconfig.SiteConfig(base_dir)
+  build_dir = site_config.destination_dir
   command = user_config["deploy_command"]
   
   subs_command = []
@@ -114,16 +106,25 @@ def deploy():
   
   subprocess.run(subs_command)
   
+def print_valid_tags():
+  user_config = read_user_config()
+  base_dir = user_config["source_dir"]
+  site_config = siteconfig.SiteConfig(base_dir)
   
+  print("Valid tags:")
+  for t in site_config.allowed_tags:
+    print("   ", t)
+
   
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
-  parser.add_argument("command", choices=["init", "build", "deploy", "clean", "new", "list"])
+  parser.add_argument("command", choices=["init", "build", "deploy", "clean", "new", "list", "tags"])
   args = parser.parse_args()
   
   {'init' : init ,
    'new' : new,
     'build' : build,
-    'deploy' : deploy}[args.command]()
+    'deploy' : deploy,
+    'tags' : print_valid_tags}[args.command]()
    

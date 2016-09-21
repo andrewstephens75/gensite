@@ -203,9 +203,9 @@ class GenSiteTemplate:
                 for d in dir_files:
                     self.static_files.append(FileDef(os.path.join(path, d), cache=False, relative_path=os.path.join(f, os.path.split(d)[0])))
         print("Template loaded with " + str(len(self.static_files)) + " static files")
+        
 
-
-    def process_source_file(self, sourceFileDef, destDir, additional_tags = {}, force_write = False):
+    def process_source_file(self, sourceFileDef, destDir, site_config, additional_mustache_tags = {}, force_write = False):
         """ process a source file and output the files required """
         header = sourceFileDef.metadata
         title = header["title"]
@@ -231,7 +231,7 @@ class GenSiteTemplate:
 
         
         html_source = self.templates[template_type].contents
-        for t,v in additional_tags.items():
+        for t,v in additional_mustache_tags.items():
             html_source = html_source.replace("{{" + t + "}}", v)
         
 
@@ -377,8 +377,8 @@ def gensite(rootdir):
     article_menu =  generate_navigation_header(site_config)
     
     for f in files_to_be_regenerated:
-        extra_article_tags = { "article_menu" : article_menu }
-        template.process_source_file(f, destdir, additional_tags = extra_article_tags)
+        extra_article_mustache_tags = { "article_menu" : article_menu }
+        template.process_source_file(f, destdir, site_config, additional_mustache_tags = extra_article_mustache_tags)
     
     template.copy_template_files(destdir)
 
@@ -409,7 +409,7 @@ def gensite(rootdir):
     index_element = template.generate_index(articles)
     index = [e for e in files if e.template_type() == "index"][0]
     i = str(lxml.etree.tostring(index_element, pretty_print=True), "utf-8")    
-    template.process_source_file(index, destdir, additional_tags = {"index_content" : i}, force_write=True)
+    template.process_source_file(index, destdir, site_config, additional_mustache_tags = {"index_content" : i}, force_write=True)
 
     """ copy static files """
     static_files = get_files_in_dir(sourcedir)
