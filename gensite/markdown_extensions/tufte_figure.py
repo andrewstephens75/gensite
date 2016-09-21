@@ -14,7 +14,7 @@ from markdown.util import etree
 import re 
 
 # start whitespace  image, whitespace  line ends
-FIGURES = [u'^\s*'+IMAGE_LINK_RE+u'\s*$', u'^\s*'+IMAGE_REFERENCE_RE+u'\s*$']
+FIGURES = [u'^\s*'+IMAGE_LINK_RE+u'(!?)\s*$',  u'^\s*'+IMAGE_REFERENCE_RE+u'\s*$']
 
 class TufteFigure(BlockProcessor):
   FIGURES_RE = re.compile('|'.join(f for f in FIGURES))
@@ -31,10 +31,17 @@ class TufteFigure(BlockProcessor):
 
   def run(self, parent, blocks): 
       raw_block = blocks.pop(0)
-      captionText = self.FIGURES_RE.search(raw_block).group(1)
+      
+      match = self.FIGURES_RE.search(raw_block)
+      print(match.groups())
+      captionText = match.group(1)
+      trailingBang = match.group(10)
 
       figure = etree.SubElement(parent, 'figure')
+      if (trailingBang == "!"):
+        figure.set("class", "fullwidth")
       figure.text = raw_block
+      
 
       figcaptionElem = etree.SubElement(figure,'figcaption')
       figcaptionElem.text = captionText 
