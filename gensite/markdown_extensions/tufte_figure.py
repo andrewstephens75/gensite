@@ -33,7 +33,6 @@ class TufteFigure(BlockProcessor):
       raw_block = blocks.pop(0)
       
       match = self.FIGURES_RE.search(raw_block)
-      print(match.groups())
       captionText = match.group(1)
       trailingBang = match.group(10)
 
