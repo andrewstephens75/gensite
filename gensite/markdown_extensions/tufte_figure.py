@@ -39,6 +39,8 @@ class TufteFigure(BlockProcessor):
       figure = etree.SubElement(parent, 'figure')
       if (trailingBang == "!"):
         figure.set("class", "fullwidth")
+        pos = raw_block.rindex('!')
+        raw_block = raw_block[:pos] + raw_block[pos+1:]
       figure.text = raw_block
       
 

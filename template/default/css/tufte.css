@@ -144,9 +144,9 @@ div.epigraph > blockquote > footer > cite { font-style: italic; }
 
 /* end chapter epigraphs styles */
 
-blockquote { font-size: 1.4rem; }
+blockquote { border-left: 2px dotted; font-size: 1.2rem; padding-left: 0.2rem; }
 
-blockquote p { width: 50%; }
+blockquote p { width: 50%;  }
 
 blockquote footer { width: 50%;
                     font-size: 1.1rem;
@@ -179,7 +179,7 @@ figcaption { float: right;
              position: relative;
              max-width: 40%; }
 
-figure.fullwidth figcaption { margin-right: 24%; }
+figure.fullwidth figcaption { margin-right: 0%; max-width: 90%; }
 
 /* Links: replicate underline that clears descenders */
 a:link, a:visited { color: inherit; }
