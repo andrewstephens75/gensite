@@ -258,7 +258,7 @@ div.fullwidth, table.fullwidth { width: 100%; }
 div.table-wrapper { overflow-x: auto;
                     font-family: "Trebuchet MS", "Gill Sans", "Gill Sans MT", sans-serif; }
 
-@media screen and (max-width: 760px) { p, footer { width: 90%; }
+@media screen and (max-width: 760px), (orientation : portrait) { p, footer { width: 90%; }
                                        pre.code { width: 87.5%; }
                                        ul { width: 85%; }
                                        figure { max-width: 90%; }
@@ -307,7 +307,8 @@ div.index div.group li
 }
 
 
-@media (max-width: 760px) { label.margin-toggle:not(.sidenote-number) { display: inline; }
+@media (max-width: 760px), (orientation : portrait)
+   { label.margin-toggle:not(.sidenote-number) { display: inline; }
                             .sidenote, .marginnote { display: none; }
                             .margin-toggle:checked + .sidenote,
                             .margin-toggle:checked + .marginnote { display: block;
