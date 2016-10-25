@@ -3,3 +3,4 @@ webbuild
 tmp
 old blog posts
 websource
+*.pyc
