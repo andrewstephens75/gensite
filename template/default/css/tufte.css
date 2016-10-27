@@ -204,6 +204,8 @@ a:link::-moz-selection { text-shadow: 0.03em 0 #b4d5fe, -0.03em 0 #b4d5fe, 0 0.0
 
 /* Sidenotes, margin notes, figures, captions */
 img { max-width: 100%; min-width: 100%; }
+img.inline-icon { max-height: 1.5rem; 
+                  min-width: 0; }
 
 .sidenote, .marginnote { float: right;
                          clear: right;
