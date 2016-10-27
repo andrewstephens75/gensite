@@ -344,7 +344,12 @@ div.index div.group li
                                              position: relative; }
                             div.table-wrapper, table, table.booktabs { width: 85%; }
                             div.table-wrapper { border-right: 1px solid #efefef; }
-                            img { width: 100%; } }
+                            img { width: 100%; }
+                            img.inline-icon { max-height: 1.5rem; 
+                                              min-width: 0;
+                                              width: auto;
+                                              }
+                           }
 
 .codehilite .hll { background-color: #404040 }
 .codehilite .c { color: #999999; font-style: italic } /* Comment */
