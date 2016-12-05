@@ -11,6 +11,9 @@
     },
     "index" : {
       "page_template" : "index_template.html"
+    },
+    "static_page" : {
+      "page_template" : "static_page_template.html"
     }
   },
   "static_files" : ["css"]

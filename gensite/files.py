@@ -160,6 +160,8 @@ class SourceFileDef(FileDef):
             return p
         elif t == "index":
             return "index.html"
+        elif t == "static_page":
+            return os.path.join(self.relative_path, self.output_filename + ".html")
         else:
             raise CompileError("Unknown template type " + t, self.file_name)
 
@@ -189,7 +191,9 @@ class GenSiteTemplate:
         # load the templates into memory
 
         self.templates = {}
-        for t in ["article", "index"]:
+        config_templates = config["templates"].keys()
+        
+        for t in config_templates:
             page_template = config["templates"][t]["page_template"]
             self.templates[t] = FileDef(os.path.join(self.template_path, page_template), cache=True)
          
@@ -342,8 +346,15 @@ def generate_navigation_header(site_config):
     
   return lxml.etree.tostring(nav_tag).decode("utf-8")
     
-    
-  
+def needs_to_be_regenerated(destdir, file):
+    output_file = os.path.join(destdir, file.dest_file_name())
+    mod_time = 0
+    if (os.path.exists(output_file)):
+        mod_time = os.path.getmtime(output_file)
+
+    if (mod_time < file.mod_time):
+        return True
+    return False
         
 def gensite(rootdir):
     """ reads the site config, loads the template, and processes each file it finds """
@@ -362,16 +373,7 @@ def gensite(rootdir):
     articles.sort(key=lambda s: s.original_date)
     articles.reverse()
     
-    files_to_be_regenerated = []
-    for f in articles:
-        output_file = os.path.join(destdir, f.dest_file_name())
-        mod_time = 0
-        if (os.path.exists(output_file)):
-            mod_time = os.path.getmtime(output_file)
-
-        if (mod_time < f.mod_time):
-            files_to_be_regenerated.append(f)
-
+    files_to_be_regenerated = [x for x in articles if needs_to_be_regenerated(destdir, x)]
     print("Will generate ", str(len(files_to_be_regenerated)), "files")
     
     article_menu =  generate_navigation_header(site_config)
@@ -379,6 +381,19 @@ def gensite(rootdir):
     for f in files_to_be_regenerated:
         extra_article_mustache_tags = { "article_menu" : article_menu }
         template.process_source_file(f, destdir, site_config, additional_mustache_tags = extra_article_mustache_tags)
+    
+    static_pages = [e for e in files if (e.template_type() == "static_page" and e.publish() == True)]
+    static_pages_to_be_regenerated = [x for x in static_pages if needs_to_be_regenerated(destdir, x)]
+    
+    if (len(static_pages_to_be_regenerated) != 0):
+        print("Will generate ", str(len(static_pages_to_be_regenerated)), " static pages");
+        
+    for f in static_pages_to_be_regenerated:
+        extra_article_mustache_tags = { "article_menu" : article_menu }
+        template.process_source_file(f, destdir, site_config, additional_mustache_tags = extra_article_mustache_tags)
+    
+    
+    
     
     template.copy_template_files(destdir)
 
