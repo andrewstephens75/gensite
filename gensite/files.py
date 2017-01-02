@@ -12,6 +12,7 @@ import lxml
 import lxml.html
 import lxml.etree
 import datetime
+import html
 
 class CompileError(Exception):
     def __init__(self, message, file_name):
@@ -208,6 +209,13 @@ class GenSiteTemplate:
                     self.static_files.append(FileDef(os.path.join(path, d), cache=False, relative_path=os.path.join(f, os.path.split(d)[0])))
         print("Template loaded with " + str(len(self.static_files)) + " static files")
         
+    def replace_mustache_tag(self, html_source, tag, replacement_text, encode=False):
+        """ Replaces the tag in the text with (optionally) html escaped replacement """
+        if encode:
+            return html_source.replace(tag, html.escape(replacement_text, quote=True))
+        else:
+            return html_source.replace(tag, replacement_text)
+        
 
     def process_source_file(self, sourceFileDef, destDir, site_config, additional_mustache_tags = {}, force_write = False):
         """ process a source file and output the files required """
@@ -215,6 +223,7 @@ class GenSiteTemplate:
         title = header["title"]
         author = header["author"]
         template_type = sourceFileDef.template_type()
+        full_url = site_config["root_url"] + sourceFileDef.dest_file_name()
 
         dest_file_path = os.path.join(destDir, sourceFileDef.dest_file_name())
         dest_file_dir = os.path.split(dest_file_path)[0]
@@ -236,12 +245,12 @@ class GenSiteTemplate:
         
         html_source = self.templates[template_type].contents
         for t,v in additional_mustache_tags.items():
-            html_source = html_source.replace("{{" + t + "}}", v)
-        
+            html_source = self.replace_mustache_tag(html_source, "{{" + t + "}}", v)
 
-        html_source = html_source.replace("{{title}}", title)
-        html_source = html_source.replace("{{author}}", author)
-        html_source = html_source.replace("{{pretty_date}}", pretty_date(sourceFileDef.original_date))
+        html_source = self.replace_mustache_tag(html_source,"{{title}}", title, encode=True)
+        html_source = self.replace_mustache_tag(html_source,"{{author}}", author, encode=True)
+        html_source = self.replace_mustache_tag(html_source,"{{pretty_date}}", pretty_date(sourceFileDef.original_date))
+        html_source = self.replace_mustache_tag(html_source,"{{full_url}}", full_url)
         
         html_source = html_source.replace("{{css_relative_path}}", relative_path_to_top)
         
