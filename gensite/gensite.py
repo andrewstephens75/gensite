@@ -114,16 +114,31 @@ def print_valid_tags():
   print("Valid tags:")
   for t in site_config.allowed_tags:
     print("   ", t)
-
+    
+def print_untagged():
+   user_config = read_user_config()
+   base_dir = user_config["source_dir"]
+   site_config = siteconfig.SiteConfig(base_dir)
+   
+   sourcedir = os.path.join(base_dir, site_config.source_dir)
+   all_source_files = files.gather_source_files(sourcedir, [".md"])
+   articles, unpublished_articles = files.get_articles(all_source_files)
+   
+   tags_for_articles, untagged = files.get_tags_for_articles(articles)
+   
+   for i in untagged:
+       print(i.file_name)
 
 
 if __name__ == "__main__":
   parser = argparse.ArgumentParser()
-  parser.add_argument("command", choices=["init", "build", "deploy", "clean", "new", "list", "tags"])
+  parser.add_argument("command", choices=["init", "build", "deploy", "clean", "new", "untagged", "tags"])
   args = parser.parse_args()
 
   {'init' : init ,
    'new' : new,
     'build' : build,
     'deploy' : deploy,
-    'tags' : print_valid_tags}[args.command]()
+    'tags' : print_valid_tags,
+    'untagged' : print_untagged}[args.command]()
+    

@@ -178,7 +178,11 @@ class SourceFileDef(FileDef):
       else:
         return self.metadata["publish"]
         
-    
+    def tags(self):
+        if "tags" not in self.metadata:
+            return []
+        else:
+            return self.metadata["tags"]
     
 class GenSiteTemplate:
     """ Contains the template handling functionality """
@@ -241,7 +245,10 @@ class GenSiteTemplate:
 
         if (template_type not in self.templates):
             raise CompileError("Unknown template type: " + template_type, sourceFileDef.file_name)
-
+            
+        for tag in sourceFileDef.tags():
+            if not site_config.is_tag_allowed(tag):
+                raise CompileError("Unknown tag: " + tag + ". Add to site config file to use.", sourceFileDef.file_name)
         
         html_source = self.templates[template_type].contents
         for t,v in additional_mustache_tags.items():
@@ -256,7 +263,6 @@ class GenSiteTemplate:
         
         article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension(), tufte_figure.TufteFigureExtension()])
         html_source = html_source.replace("{{article_content}}", article_text)
-
 
         with open(outputFileDef.file_name, "w", encoding="utf-8") as f:
             f.write(html_source)
@@ -364,6 +370,30 @@ def needs_to_be_regenerated(destdir, file):
     if (mod_time < file.mod_time):
         return True
     return False
+
+def get_articles(files):
+    articles = [e for e in files if (e.template_type() == "article" and e.publish() == True)]
+    unpublished_articles = [e for e in files if (e.template_type() == "article" and e.publish() == False)]
+    articles.sort(key=lambda s: s.original_date)
+    articles.reverse()
+    
+    return articles, unpublished_articles
+
+def get_tags_for_articles(articles):
+    tagged_articles = {}
+    untagged_articles = []
+    for a in articles:
+        if len(a.tags()) == 0:
+            untagged_articles.append(a)
+        else:
+            for t in a.tags():
+                if t in tagged_articles:
+                    tagged_articles[t].append(a)
+                else:
+                    tagged_articles[t] = [a]
+    print(tagged_articles)
+    return tagged_articles, untagged_articles
+    
         
 def gensite(rootdir):
     """ reads the site config, loads the template, and processes each file it finds """
@@ -376,11 +406,10 @@ def gensite(rootdir):
     sourcedir = os.path.join(rootdir, site_config["source_dir"])
 
     files = gather_source_files(sourcedir, [".md"])
-
-    articles = [e for e in files if (e.template_type() == "article" and e.publish() == True)]
-    unpublished_articles = [e for e in files if (e.template_type() == "article" and e.publish() == False)]
-    articles.sort(key=lambda s: s.original_date)
-    articles.reverse()
+    
+    articles, unpublished_articles = get_articles(files)
+    
+    tags_for_articles = get_tags_for_articles(articles)
     
     files_to_be_regenerated = [x for x in articles if needs_to_be_regenerated(destdir, x)]
     print("Will generate ", str(len(files_to_be_regenerated)), "files")
@@ -399,10 +428,7 @@ def gensite(rootdir):
         
     for f in static_pages_to_be_regenerated:
         extra_article_mustache_tags = { "article_menu" : article_menu }
-        template.process_source_file(f, destdir, site_config, additional_mustache_tags = extra_article_mustache_tags)
-    
-    
-    
+        template.process_source_file(f, destdir, site_config, additional_mustache_tags = extra_article_mustache_tags)    
     
     template.copy_template_files(destdir)
 
