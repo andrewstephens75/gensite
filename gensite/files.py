@@ -14,6 +14,8 @@ import lxml.etree
 import datetime
 import html
 
+import siteconfig
+
 class CompileError(Exception):
     def __init__(self, message, file_name):
         self.message = message
@@ -227,7 +229,7 @@ class GenSiteTemplate:
         title = header["title"]
         author = header["author"]
         template_type = sourceFileDef.template_type()
-        full_url = site_config["root_url"] + sourceFileDef.dest_file_name()
+        full_url = site_config.root_url + sourceFileDef.dest_file_name()
 
         dest_file_path = os.path.join(destDir, sourceFileDef.dest_file_name())
         dest_file_dir = os.path.split(dest_file_path)[0]
@@ -245,10 +247,24 @@ class GenSiteTemplate:
 
         if (template_type not in self.templates):
             raise CompileError("Unknown template type: " + template_type, sourceFileDef.file_name)
-            
-        for tag in sourceFileDef.tags():
-            if not site_config.is_tag_allowed(tag):
+        
+        """ Calculate the list of tags for this article"""
+        article_tags = []
+        for tag_name in sourceFileDef.tags():
+            if not site_config.is_tag_allowed(tag_name):
                 raise CompileError("Unknown tag: " + tag + ". Add to site config file to use.", sourceFileDef.file_name)
+            article_tags.append(site_config.allowed_tags[tag_name])
+        
+        tag_links = []
+        article_tags.sort(key=lambda s: s.title)
+        for tag in article_tags:
+            """ tag_links.append("<a href=\"" + relative_path_to_top + "tag_" + tag.tag + ".html\">" + html.escape(tag.title, quote=True) + "</a>") """
+            tag_links.append(html.escape(tag.title, quote=True))
+        
+        tag_links_text = ""
+        if len(tag_links) != 0:
+            tag_links_text = "in " + ", ".join(tag_links)
+
         
         html_source = self.templates[template_type].contents
         for t,v in additional_mustache_tags.items():
@@ -258,6 +274,7 @@ class GenSiteTemplate:
         html_source = self.replace_mustache_tag(html_source,"{{author}}", author, encode=True)
         html_source = self.replace_mustache_tag(html_source,"{{pretty_date}}", pretty_date(sourceFileDef.original_date))
         html_source = self.replace_mustache_tag(html_source,"{{full_url}}", full_url)
+        html_source = self.replace_mustache_tag(html_source,"{{tag_links}}", tag_links_text)
         
         html_source = html_source.replace("{{css_relative_path}}", relative_path_to_top)
         
@@ -345,7 +362,7 @@ class UTC(datetime.tzinfo):
 def generate_navigation_header(site_config):
   """ generates the navigation header """
   
-  menu_items = site_config["navigation_menu"]
+  menu_items = site_config.navigation_menu
   nav_tag = lxml.etree.Element("nav")
   
   for i in menu_items:
@@ -397,13 +414,11 @@ def get_tags_for_articles(articles):
         
 def gensite(rootdir):
     """ reads the site config, loads the template, and processes each file it finds """
-    site_config = {}
-    with open(os.path.join(rootdir, "config.js"), encoding="utf-8") as config_file:
-        site_config = json.load(config_file)
+    site_config = siteconfig.SiteConfig(rootdir)
 
-    template = GenSiteTemplate(os.path.join(rootdir, site_config["template"]))
-    destdir = os.path.join(rootdir, site_config["destination_dir"])
-    sourcedir = os.path.join(rootdir, site_config["source_dir"])
+    template = GenSiteTemplate(os.path.join(rootdir, site_config.template))
+    destdir = os.path.join(rootdir, site_config.destination_dir)
+    sourcedir = os.path.join(rootdir, site_config.source_dir)
 
     files = gather_source_files(sourcedir, [".md"])
     
@@ -434,21 +449,21 @@ def gensite(rootdir):
 
     """ generate feed """
     fg = FeedGenerator()
-    fg.id(site_config["blog_name"])
+    fg.id(site_config.blog_name)
     fg.language("en")
-    fg.title(site_config["blog_name"])
-    fg.link(href= site_config["root_url"], rel='alternate')
-    fg.description(site_config["blog_description"])
+    fg.title(site_config.blog_name)
+    fg.link(href= site_config.root_url, rel='alternate')
+    fg.description(site_config.blog_description)
     fg.ttl(6 * 60)
 
     for entry in articles:
         dest_file_name = entry.dest_file_name();
         fe = fg.add_entry()
-        link = site_config["root_url"] + dest_file_name
+        link = site_config.root_url + dest_file_name
         fe.id(link)
         fe.title(entry.title())
         fe.link(link={"href":link})
-        fe.content(src=site_config["root_url"] + dest_file_name)
+        fe.content(src=site_config.root_url + dest_file_name)
         date = datetime.datetime.fromtimestamp(time.mktime(entry.original_date), UTC())
         fe.published(date)
         fe.updated(date)

@@ -9,6 +9,9 @@
     "article" : {
       "page_template" : "article_template.html"
     },
+    "tag" : {
+      "page_template" : "tag_template.html"
+    },
     "index" : {
       "page_template" : "index_template.html"
     },
