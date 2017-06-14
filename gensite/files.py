@@ -5,8 +5,8 @@ import json
 import io
 import time
 import shutil
-from markdown_extensions import tufte_aside
-from markdown_extensions import tufte_figure
+from .markdown_extensions import tufte_aside
+from .markdown_extensions import tufte_figure
 from feedgen.feed import FeedGenerator
 import lxml
 import lxml.html
@@ -14,7 +14,7 @@ import lxml.etree
 import datetime
 import html
 
-import siteconfig
+from . import siteconfig
 
 class CompileError(Exception):
     def __init__(self, message, file_name):
@@ -57,15 +57,15 @@ def pretty_date(d):
   """ returns a html formatted pretty date """
   special_suffixs = {1 : "st", 2 : "nd" , 3 : "rd", 21 : "st", 22 : "nd", 23 : "rd", 31 : "st"}
   suffix = "th"
-  
+
   if d.tm_mday in special_suffixs:
     suffix = special_suffixs[d.tm_mday]
-  
+
   suffix = "<sup>" + suffix + "</sup>"
-  
+
   day = time.strftime("%A", d)
   month = time.strftime("%B", d)
-  
+
   return day + " the " + str(d.tm_mday) + suffix + " of " + month + ", " + str(d.tm_year)
 
 
@@ -88,7 +88,7 @@ class FileDef:
         with open(self.file_name, encoding="utf-8") as f:
             contents = f.read()
         return contents
-    
+
     def older(self, other):
         if (other.mod_time == 0):
             return False
@@ -111,7 +111,7 @@ class FileDef:
             shutil.copy2(self.file_name, dest_file)
             return True
         return False
-        
+
 
 class SourceFileDef(FileDef):
     def __init__(self, file_name, cache=False, relative_path = ""):
@@ -173,22 +173,22 @@ class SourceFileDef(FileDef):
 
     def title(self):
         return self.metadata["title"]
-        
+
     def publish(self):
       if "publish" not in self.metadata:
         return True
       else:
         return self.metadata["publish"]
-        
+
     def tags(self):
         if "tags" not in self.metadata:
             return []
         else:
             return self.metadata["tags"]
-    
+
 class GenSiteTemplate:
     """ Contains the template handling functionality """
-    
+
     def __init__(self, template_path):
         self.template_path = template_path
         config = {}
@@ -199,11 +199,11 @@ class GenSiteTemplate:
 
         self.templates = {}
         config_templates = config["templates"].keys()
-        
+
         for t in config_templates:
             page_template = config["templates"][t]["page_template"]
             self.templates[t] = FileDef(os.path.join(self.template_path, page_template), cache=True)
-         
+
         self.static_files = []
         for f in config["static_files"]:
             path = os.path.join(template_path, f)
@@ -214,14 +214,14 @@ class GenSiteTemplate:
                 for d in dir_files:
                     self.static_files.append(FileDef(os.path.join(path, d), cache=False, relative_path=os.path.join(f, os.path.split(d)[0])))
         print("Template loaded with " + str(len(self.static_files)) + " static files")
-        
+
     def replace_mustache_tag(self, html_source, tag, replacement_text, encode=False):
         """ Replaces the tag in the text with (optionally) html escaped replacement """
         if encode:
             return html_source.replace(tag, html.escape(replacement_text, quote=True))
         else:
             return html_source.replace(tag, replacement_text)
-        
+
 
     def process_source_file(self, sourceFileDef, destDir, site_config, additional_mustache_tags = {}, force_write = False):
         """ process a source file and output the files required """
@@ -247,25 +247,25 @@ class GenSiteTemplate:
 
         if (template_type not in self.templates):
             raise CompileError("Unknown template type: " + template_type, sourceFileDef.file_name)
-        
+
         """ Calculate the list of tags for this article"""
         article_tags = []
         for tag_name in sourceFileDef.tags():
             if not site_config.is_tag_allowed(tag_name):
-                raise CompileError("Unknown tag: " + tag + ". Add to site config file to use.", sourceFileDef.file_name)
+                raise CompileError("Unknown tag: " + tag_name + ". Add to site config file to use.", sourceFileDef.file_name)
             article_tags.append(site_config.allowed_tags[tag_name])
-        
+
         tag_links = []
         article_tags.sort(key=lambda s: s.title)
         for tag in article_tags:
             """ tag_links.append("<a href=\"" + relative_path_to_top + "tag_" + tag.tag + ".html\">" + html.escape(tag.title, quote=True) + "</a>") """
             tag_links.append(html.escape(tag.title, quote=True))
-        
+
         tag_links_text = ""
         if len(tag_links) != 0:
             tag_links_text = "in " + ", ".join(tag_links)
 
-        
+
         html_source = self.templates[template_type].contents
         for t,v in additional_mustache_tags.items():
             html_source = self.replace_mustache_tag(html_source, "{{" + t + "}}", v)
@@ -275,9 +275,9 @@ class GenSiteTemplate:
         html_source = self.replace_mustache_tag(html_source,"{{pretty_date}}", pretty_date(sourceFileDef.original_date))
         html_source = self.replace_mustache_tag(html_source,"{{full_url}}", full_url)
         html_source = self.replace_mustache_tag(html_source,"{{tag_links}}", tag_links_text)
-        
+
         html_source = html_source.replace("{{css_relative_path}}", relative_path_to_top)
-        
+
         article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension(), tufte_figure.TufteFigureExtension()])
         html_source = html_source.replace("{{article_content}}", article_text)
 
@@ -296,15 +296,15 @@ class GenSiteTemplate:
         all_files.reverse()
 
         index_element = lxml.html.Element("div", {"class": "index"})
-        
+
         group_element = lxml.html.Element("div", {"class" : "group"})
         list_element = lxml.html.Element("ul")
         current_group_date = None
         current_group_len = 0
-        
+
         def same_month_and_year(t1, t2):
           return ((t1.tm_year == t2.tm_year) and (t1.tm_mon == t2.tm_mon))
-          
+
         def emit_grouped_list(list_element):
               group_element = lxml.html.Element("div", {"class" : "group"})
               header_element = lxml.html.Element("div", {"class" : "groupheading"})
@@ -312,7 +312,7 @@ class GenSiteTemplate:
               group_element.append(header_element)
               group_element.append(list_element)
               index_element.append(group_element)
-     
+
         for f in all_files:
             date = f.original_date
             if (current_group_date == None):
@@ -324,7 +324,7 @@ class GenSiteTemplate:
               list_element = lxml.html.Element("ul")
               current_group_date = date
               current_group_len = 0
-                            
+
             title = f.title()
             template_type = f.template_type()
             item = lxml.html.Element("li")
@@ -358,13 +358,13 @@ class UTC(datetime.tzinfo):
 
     def dst(self, dt):
         return datetime.timedelta(0)
-        
+
 def generate_navigation_header(site_config):
   """ generates the navigation header """
-  
+
   menu_items = site_config.navigation_menu
   nav_tag = lxml.etree.Element("nav")
-  
+
   for i in menu_items:
     name = i["title"]
     href = i["href"]
@@ -375,9 +375,9 @@ def generate_navigation_header(site_config):
     link_tag.text = name
     span_tag.append(link_tag)
     nav_tag.append(span_tag)
-    
+
   return lxml.etree.tostring(nav_tag).decode("utf-8")
-    
+
 def needs_to_be_regenerated(destdir, file):
     output_file = os.path.join(destdir, file.dest_file_name())
     mod_time = 0
@@ -393,7 +393,7 @@ def get_articles(files):
     unpublished_articles = [e for e in files if (e.template_type() == "article" and e.publish() == False)]
     articles.sort(key=lambda s: s.original_date)
     articles.reverse()
-    
+
     return articles, unpublished_articles
 
 def get_tags_for_articles(articles):
@@ -410,8 +410,8 @@ def get_tags_for_articles(articles):
                     tagged_articles[t] = [a]
     print(tagged_articles)
     return tagged_articles, untagged_articles
-    
-        
+
+
 def gensite(rootdir):
     """ reads the site config, loads the template, and processes each file it finds """
     site_config = siteconfig.SiteConfig(rootdir)
@@ -421,30 +421,30 @@ def gensite(rootdir):
     sourcedir = os.path.join(rootdir, site_config.source_dir)
 
     files = gather_source_files(sourcedir, [".md"])
-    
+
     articles, unpublished_articles = get_articles(files)
-    
+
     tags_for_articles = get_tags_for_articles(articles)
-    
+
     files_to_be_regenerated = [x for x in articles if needs_to_be_regenerated(destdir, x)]
     print("Will generate ", str(len(files_to_be_regenerated)), "files")
-    
+
     article_menu =  generate_navigation_header(site_config)
-    
+
     for f in files_to_be_regenerated:
         extra_article_mustache_tags = { "article_menu" : article_menu }
         template.process_source_file(f, destdir, site_config, additional_mustache_tags = extra_article_mustache_tags)
-    
+
     static_pages = [e for e in files if (e.template_type() == "static_page" and e.publish() == True)]
     static_pages_to_be_regenerated = [x for x in static_pages if needs_to_be_regenerated(destdir, x)]
-    
+
     if (len(static_pages_to_be_regenerated) != 0):
         print("Will generate ", str(len(static_pages_to_be_regenerated)), " static pages");
-        
+
     for f in static_pages_to_be_regenerated:
         extra_article_mustache_tags = { "article_menu" : article_menu }
-        template.process_source_file(f, destdir, site_config, additional_mustache_tags = extra_article_mustache_tags)    
-    
+        template.process_source_file(f, destdir, site_config, additional_mustache_tags = extra_article_mustache_tags)
+
     template.copy_template_files(destdir)
 
     """ generate feed """
@@ -470,10 +470,10 @@ def gensite(rootdir):
 
     fg.rss_file(os.path.join(destdir, 'rss.xml'), pretty=True)
     fg.atom_file(os.path.join(destdir, 'atom.xml'), pretty=True)
-    
+
     index_element = template.generate_index(articles)
     index = [e for e in files if e.template_type() == "index"][0]
-    i = str(lxml.etree.tostring(index_element, pretty_print=True), "utf-8")    
+    i = str(lxml.etree.tostring(index_element, pretty_print=True), "utf-8")
     template.process_source_file(index, destdir, site_config, additional_mustache_tags = {"index_content" : i}, force_write=True)
 
     """ copy static files """
@@ -493,7 +493,7 @@ def gensite(rootdir):
       print("The following files are marked as unpublished and were not processed: ")
       for u in unpublished_articles:
         print("  ", u.file_name)
-    
+
 def create_new_article(base_dir, title, author, date, template_type = "article", initial_contents=""):
   metadata = { "title" : title,
                "author" : author,
@@ -513,4 +513,3 @@ def create_new_article(base_dir, title, author, date, template_type = "article",
       f.write("\n\n")
       f.write(initial_contents)
   return p
-                               

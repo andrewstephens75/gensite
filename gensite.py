@@ -6,7 +6,6 @@
 # gensite list
 
 import argparse
-import files
 import os.path
 
 import json
@@ -14,8 +13,9 @@ import io
 import time
 import subprocess
 
-import files
-import siteconfig
+from gensite import files
+from gensite import siteconfig
+from gensite import userconfig
 
 class CommandError(Exception):
     def __init__(self, message):
@@ -55,20 +55,11 @@ def init():
 
   print("OK - edit config.js file")
 
-def read_user_config():
-  user_config_file = os.path.join(os.path.expanduser("~"), ".gensite")
 
-  if not os.path.exists(user_config_file):
-    raise CommandError("No user file exists, use gensite init first : " + user_config_file)
-
-  user_config = {}
-  with open(user_config_file, "r", encoding="utf-8") as f:
-    user_config = json.load(f)
-  return user_config
 
 def new():
   """ creates a file from the template """
-  user_config = read_user_config()
+  user_config = userconfig.read_user_config()
   base_dir = user_config["source_dir"]
   site_config = siteconfig.SiteConfig(base_dir)
   author = site_config.blog_author
@@ -79,14 +70,14 @@ def new():
   print(p, "created")
 
 def build():
-  user_config = read_user_config()
+  user_config = userconfig.read_user_config()
   base_dir = user_config["source_dir"]
   site_config = siteconfig.SiteConfig(base_dir)
 
   files.gensite(base_dir)
 
 def deploy():
-  user_config = read_user_config()
+  user_config = userconfig.read_user_config()
   base_dir = user_config["source_dir"]
   site_config = siteconfig.SiteConfig(base_dir)
   build_dir = site_config.destination_dir
@@ -107,25 +98,25 @@ def deploy():
   subprocess.run(subs_command)
 
 def print_valid_tags():
-  user_config = read_user_config()
+  user_config = userconfig.read_user_config()
   base_dir = user_config["source_dir"]
   site_config = siteconfig.SiteConfig(base_dir)
 
   print("Valid tags:")
   for t in site_config.allowed_tags:
     print("   ", t)
-    
+
 def print_untagged():
-   user_config = read_user_config()
+   user_config = userconfig.read_user_config()
    base_dir = user_config["source_dir"]
    site_config = siteconfig.SiteConfig(base_dir)
-   
+
    sourcedir = os.path.join(base_dir, site_config.source_dir)
    all_source_files = files.gather_source_files(sourcedir, [".md"])
    articles, unpublished_articles = files.get_articles(all_source_files)
-   
+
    tags_for_articles, untagged = files.get_tags_for_articles(articles)
-   
+
    for i in untagged:
        print(i.file_name)
 
@@ -141,4 +132,3 @@ if __name__ == "__main__":
     'deploy' : deploy,
     'tags' : print_valid_tags,
     'untagged' : print_untagged}[args.command]()
-    
