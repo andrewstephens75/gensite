@@ -1,0 +1,142 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{title}}</title>
+  <meta name="description" content="{{description}}" />
+  <meta name="author" content="{{author}}" />
+  <link rel="stylesheet" href="{{css_relative_path}}css/tufte.css" type="text/css" />
+  <link rel="icon" href="/favicon.ico" type="image/png" />
+</head>
+
+<style>
+
+span.tag {
+    border-radius: 2px;
+    border-width: 1px;
+    background: #aaaa88;
+    padding: 0px 2px;
+    margin: 2px;
+    white-space:nowrap;
+  }
+</style>
+
+
+<script type="text/ecmascript">
+  var tag_database = {{tag_json}};
+  document.addEventListener("DOMContentLoaded", function(event) {
+    setupTags();
+  });
+
+  function createElementWithAttributes(tag, attribs, text)
+  {
+    var element = document.createElement(tag);
+    for (var i in attribs) {
+      element.setAttribute(i, attribs[i]);
+    }
+
+    if (text != null)
+    {
+      var textElement = document.createTextNode(text);
+      element.appendChild(textElement);
+    }
+    return element;
+  }
+
+  function setupTags()
+  {
+    for (var i in tag_database) {
+      var tag = tag_database[i];
+
+      var checkboxId = "check" + tag.tag;
+      var tagSpan = createElementWithAttributes("span", {"class" : "tag"});
+      var tagCheck = createElementWithAttributes("input", {"type" : "checkbox",
+                                                           "id" : checkboxId,
+                                                           "name" : tag.tag,
+                                                           "value" : tag.tag});
+      var tagLabel = createElementWithAttributes("label", {"for" : checkboxId}, tag.title);
+
+      tagSpan.appendChild(tagLabel);
+      tagSpan.appendChild(tagCheck);
+
+      tagCheck.addEventListener("change", showArticlesForSelectedTags);
+
+      document.getElementById("tags").appendChild(tagSpan);
+      document.getElementById("tags").appendChild(document.createTextNode(" "));
+    }
+  }
+
+  function showArticlesForSelectedTags()
+  {
+    var targetElement = document.getElementById("matching-articles");
+    while (targetElement.firstChild) {targetElement.removeChild(targetElement.firstChild);};
+
+    var matchingArticleUrls = new Set();
+    var allArticleDetails = new Map();
+
+    var tagInputElements = document.getElementById("tags").getElementsByTagName("input");
+    var allTagsUnchecked = true;
+    var firstCheckedTag = true;
+
+    for (var i = 0; i < tagInputElements.length; i++) {
+      if (tagInputElements[i].checked) {
+        allTagsUnchecked = false;
+        var t = tagInputElements[i].getAttribute("value");
+        var tag = tag_database.find(function(x) {return (x.tag === t);});
+
+        var articlesUrlsForTag = new Set();
+        if (tag) {
+          for (var a of tag.articles) {
+            articlesUrlsForTag.add(a.url);
+            allArticleDetails.set(a.url, a);
+          }
+        }
+
+        // if this is the first tag then the matching artciles are just any that are
+        // tagged that way. Subsequent tags restirct the set by taking the intersection
+        if (firstCheckedTag) {
+          matchingArticleUrls = articlesUrlsForTag;
+          firstCheckedTag = false;
+        } else {
+          var intersection = new Set();
+          for (var e of matchingArticleUrls) {
+            if (articlesUrlsForTag.has(e))
+            {
+              intersection.add(e);
+            }
+          }
+          matchingArticleUrls = intersection;
+        }
+      }
+    }
+
+    document.getElementById("nothingmatches").style.display=((matchingArticleUrls.size != 0)?"none":"inherit");
+
+
+    for (var e of matchingArticleUrls) {
+      var article = allArticleDetails.get(e);
+
+      var listItemElement = createElementWithAttributes("li", {});
+      var aElement = createElementWithAttributes("a", {"href" : article.url}, article.title);
+
+      listItemElement.appendChild(aElement);
+      targetElement.appendChild(listItemElement);
+    }
+
+
+  }
+</script>
+
+
+  <body>
+    <header>{{article_menu}}</header>
+    <h1>{{title}}</h1>
+    {{article_content}}
+
+    <p id="tags"></p>
+    <p id="nothingmatches">Nothing matches the selected tags</p>
+    <ul id="matching-articles"></ul>
+
+</body>
+</html>

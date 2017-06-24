@@ -163,6 +163,8 @@ class SourceFileDef(FileDef):
             return p
         elif t == "index":
             return "index.html"
+        elif t == "tag_cloud":
+            return "tagcloud.html"
         elif t == "static_page":
             return os.path.join(self.relative_path, self.output_filename + ".html")
         else:
@@ -408,9 +410,28 @@ def get_tags_for_articles(articles):
                     tagged_articles[t].append(a)
                 else:
                     tagged_articles[t] = [a]
-    print(tagged_articles)
     return tagged_articles, untagged_articles
 
+def build_tagging_data(site_config, articles):
+    """ Returns all articles by tag, suitable for constructing a JSON idex """
+    tagged_articles, untagged_articles = get_tags_for_articles(articles)
+
+    allowed_tags = site_config.allowed_tags
+
+    all_tags = []
+    for tagname, taginfo in allowed_tags.items():
+        tagdata = { 'tag' : tagname,
+                    'title' : taginfo.title,
+                    'articles' : [] }
+        articles_for_tag = tagged_articles[tagname]
+        for a in articles_for_tag:
+            t = { 'title' : a.title() ,
+                  'url' : a.dest_file_name()}
+            tagdata['articles'].append(t)
+
+        all_tags.append(tagdata)
+
+    return all_tags
 
 def gensite(rootdir):
     """ reads the site config, loads the template, and processes each file it finds """
@@ -423,8 +444,6 @@ def gensite(rootdir):
     files = gather_source_files(sourcedir, [".md"])
 
     articles, unpublished_articles = get_articles(files)
-
-    tags_for_articles = get_tags_for_articles(articles)
 
     files_to_be_regenerated = [x for x in articles if needs_to_be_regenerated(destdir, x)]
     print("Will generate ", str(len(files_to_be_regenerated)), "files")
@@ -475,6 +494,12 @@ def gensite(rootdir):
     index = [e for e in files if e.template_type() == "index"][0]
     i = str(lxml.etree.tostring(index_element, pretty_print=True), "utf-8")
     template.process_source_file(index, destdir, site_config, additional_mustache_tags = {"index_content" : i}, force_write=True)
+
+    """ tag cloud stuff """
+    tag_cloud_template = [e for e in files if e.template_type() == "tag_cloud"][0]
+    print(tag_cloud_template)
+    tag_cloud_json = json.dumps(build_tagging_data(site_config, articles), indent=2, sort_keys=True)
+    template.process_source_file(tag_cloud_template, destdir, site_config, additional_mustache_tags = {"tag_json" : tag_cloud_json, "article_menu" : article_menu}, force_write=True)
 
     """ copy static files """
     static_files = get_files_in_dir(sourcedir)
