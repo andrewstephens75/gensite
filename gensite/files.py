@@ -116,9 +116,12 @@ class FileDef:
 class SourceFileDef(FileDef):
     def __init__(self, file_name, cache=False, relative_path = ""):
         super().__init__(file_name, cache, relative_path)
-        self.metadata, self.contents = self.split_header_contents()
-        self.original_date = time.strptime( self.metadata["original_date"], "%a, %d %b %Y %H:%M:%SZ")
-        self.output_filename = make_filename_safe_title(self.metadata["title"])
+        try:
+            self.metadata, self.contents = self.split_header_contents()
+            self.original_date = time.strptime( self.metadata["original_date"], "%a, %d %b %Y %H:%M:%SZ")
+            self.output_filename = make_filename_safe_title(self.metadata["title"])
+        except Exception as err:
+            raise CompileError(str(err), file_name)
 
     def split_header_contents(self):
         """ Gets the json header from the file and leaves the file pointer at the first
@@ -257,16 +260,14 @@ class GenSiteTemplate:
                 raise CompileError("Unknown tag: " + tag_name + ". Add to site config file to use.", sourceFileDef.file_name)
             article_tags.append(site_config.allowed_tags[tag_name])
 
-        tag_links = []
         article_tags.sort(key=lambda s: s.title)
+        all_tag_ids = [];
+        all_tag_titles = [];
         for tag in article_tags:
-            """ tag_links.append("<a href=\"" + relative_path_to_top + "tag_" + tag.tag + ".html\">" + html.escape(tag.title, quote=True) + "</a>") """
-            tag_links.append(html.escape(tag.title, quote=True))
+            all_tag_titles.append(html.escape(tag.title, quote=True));
+            all_tag_ids.append(tag.tag);
 
-        tag_links_text = ""
-        if len(tag_links) != 0:
-            tag_links_text = "in " + ", ".join(tag_links)
-
+        tag_link_text = "in <a href=\"/tagcloud.html#" + "+".join(all_tag_ids) + "\">" + ", ".join(all_tag_titles) + "</a>";
 
         html_source = self.templates[template_type].contents
         for t,v in additional_mustache_tags.items():
@@ -276,7 +277,7 @@ class GenSiteTemplate:
         html_source = self.replace_mustache_tag(html_source,"{{author}}", author, encode=True)
         html_source = self.replace_mustache_tag(html_source,"{{pretty_date}}", pretty_date(sourceFileDef.original_date))
         html_source = self.replace_mustache_tag(html_source,"{{full_url}}", full_url)
-        html_source = self.replace_mustache_tag(html_source,"{{tag_links}}", tag_links_text)
+        html_source = self.replace_mustache_tag(html_source,"{{tag_links}}", tag_link_text)
 
         html_source = html_source.replace("{{css_relative_path}}", relative_path_to_top)
 
@@ -499,7 +500,12 @@ def gensite(rootdir):
     tag_cloud_template = [e for e in files if e.template_type() == "tag_cloud"][0]
     print(tag_cloud_template)
     tag_cloud_json = json.dumps(build_tagging_data(site_config, articles), indent=2, sort_keys=True)
-    template.process_source_file(tag_cloud_template, destdir, site_config, additional_mustache_tags = {"tag_json" : tag_cloud_json, "article_menu" : article_menu}, force_write=True)
+    template.process_source_file(tag_cloud_template,
+                                 destdir,
+                                 site_config,
+                                 additional_mustache_tags = {"tag_json" : tag_cloud_json,
+                                                             "article_menu" : article_menu},
+                                force_write=True)
 
     """ copy static files """
     static_files = get_files_in_dir(sourcedir)

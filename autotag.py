@@ -30,7 +30,8 @@ def tagArticle(article):
                   "fa" : "fantasy",
                   "v" : "video",
                   "h" : "happening",
-                  "r" : "rant"};
+                  "r" : "rant",
+                  "nf" : "nonfiction"};
 
     if (len(tags) == 0):
         print(article.metadata["title"])
