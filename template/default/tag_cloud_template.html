@@ -28,6 +28,35 @@ span.tag {
   document.addEventListener("DOMContentLoaded", function(event) {
     setupTags();
   });
+  window.onpopstate = function(event){ stateChangedFromHistory(); };
+
+  function getTagsFromUrl()
+  {
+    var hashString = window.location.hash;
+    var tagIdsFromUrl = new Set();
+    if (hashString.length > 0) {
+      hashString = hashString.substring(1);
+
+      var tagIds = hashString.split("+");
+      for (t of tagIds) {
+        tagIdsFromUrl.add(t);
+      }
+    }
+    return tagIdsFromUrl;
+
+  }
+
+  function stateChangedFromHistory()
+  {
+    var selectedTags = getTagsFromUrl();
+
+    var tagInputElements = document.getElementById("tags").getElementsByTagName("input");
+    for (var i = 0; i < tagInputElements.length; i++) {
+      tagInputElements[i].checked = selectedTags.has(tagInputElements[i].getAttribute("value"));
+    }
+
+    showArticlesForSelectedTags(selectedTags);
+  }
 
   function createElementWithAttributes(tag, attribs, text)
   {
@@ -46,6 +75,10 @@ span.tag {
 
   function setupTags()
   {
+    tag_database.sort((l, r) => {return l.title.localeCompare(r.title)});
+
+    var tagIdsFromUrl = getTagsFromUrl();
+
     for (var i in tag_database) {
       var tag = tag_database[i];
 
@@ -55,19 +88,41 @@ span.tag {
                                                            "id" : checkboxId,
                                                            "name" : tag.tag,
                                                            "value" : tag.tag});
+      if (tagIdsFromUrl.has(tag.tag)) {
+        tagCheck.checked = true;
+      }
       var tagLabel = createElementWithAttributes("label", {"for" : checkboxId}, tag.title);
 
       tagSpan.appendChild(tagLabel);
       tagSpan.appendChild(tagCheck);
 
-      tagCheck.addEventListener("change", showArticlesForSelectedTags);
+      tagCheck.addEventListener("change", stateChanged);
 
       document.getElementById("tags").appendChild(tagSpan);
       document.getElementById("tags").appendChild(document.createTextNode(" "));
     }
+
+    showArticlesForSelectedTags(tagIdsFromUrl);
   }
 
-  function showArticlesForSelectedTags()
+  function stateChanged()
+  {
+    var tagInputElements = document.getElementById("tags").getElementsByTagName("input");
+    var selectedTags = [];
+
+    for (var i = 0; i < tagInputElements.length; i++) {
+      if (tagInputElements[i].checked) {
+        selectedTags.push(tagInputElements[i].getAttribute("value"));
+      }
+    }
+
+    var hashstate = "#" + selectedTags.join("+");
+    window.history.pushState({}, "", hashstate);
+
+    showArticlesForSelectedTags(selectedTags);
+  }
+
+  function showArticlesForSelectedTags(selectedTagIds)
   {
     var targetElement = document.getElementById("matching-articles");
     while (targetElement.firstChild) {targetElement.removeChild(targetElement.firstChild);};
@@ -75,44 +130,43 @@ span.tag {
     var matchingArticleUrls = new Set();
     var allArticleDetails = new Map();
 
-    var tagInputElements = document.getElementById("tags").getElementsByTagName("input");
     var allTagsUnchecked = true;
     var firstCheckedTag = true;
 
-    for (var i = 0; i < tagInputElements.length; i++) {
-      if (tagInputElements[i].checked) {
-        allTagsUnchecked = false;
-        var t = tagInputElements[i].getAttribute("value");
-        var tag = tag_database.find(function(x) {return (x.tag === t);});
+    for (var tagId of selectedTagIds)
+    {
+      var tag = tag_database.find((x) => {return (x.tag === tagId);});
 
-        var articlesUrlsForTag = new Set();
-        if (tag) {
-          for (var a of tag.articles) {
-            articlesUrlsForTag.add(a.url);
-            allArticleDetails.set(a.url, a);
+      if (tag == undefined) {
+        continue;
+      }
+
+      var articlesUrlsForTag = new Set();
+      if (tag) {
+        for (var a of tag.articles) {
+          articlesUrlsForTag.add(a.url);
+          allArticleDetails.set(a.url, a);
+        }
+      }
+
+      // if this is the first tag then the matching artciles are just any that are
+      // tagged that way. Subsequent tags restirct the set by taking the intersection
+      if (firstCheckedTag) {
+        matchingArticleUrls = articlesUrlsForTag;
+        firstCheckedTag = false;
+      } else {
+        var intersection = new Set();
+        for (var e of matchingArticleUrls) {
+          if (articlesUrlsForTag.has(e))
+          {
+            intersection.add(e);
           }
         }
-
-        // if this is the first tag then the matching artciles are just any that are
-        // tagged that way. Subsequent tags restirct the set by taking the intersection
-        if (firstCheckedTag) {
-          matchingArticleUrls = articlesUrlsForTag;
-          firstCheckedTag = false;
-        } else {
-          var intersection = new Set();
-          for (var e of matchingArticleUrls) {
-            if (articlesUrlsForTag.has(e))
-            {
-              intersection.add(e);
-            }
-          }
-          matchingArticleUrls = intersection;
-        }
+        matchingArticleUrls = intersection;
       }
     }
 
     document.getElementById("nothingmatches").style.display=((matchingArticleUrls.size != 0)?"none":"inherit");
-
 
     for (var e of matchingArticleUrls) {
       var article = allArticleDetails.get(e);
@@ -135,7 +189,7 @@ span.tag {
     {{article_content}}
 
     <p id="tags"></p>
-    <p id="nothingmatches">Nothing matches the selected tags</p>
+    <p id="nothingmatches">Nothing matches this combination of selected tags</p>
     <ul id="matching-articles"></ul>
 
 </body>
