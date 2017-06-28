@@ -20,6 +20,13 @@ span.tag {
     margin: 2px;
     white-space:nowrap;
   }
+
+  li.exactmatch > a {
+  }
+
+  li.partialmatch > a {
+    color: gray;
+  }
 </style>
 
 
@@ -127,11 +134,8 @@ span.tag {
     var targetElement = document.getElementById("matching-articles");
     while (targetElement.firstChild) {targetElement.removeChild(targetElement.firstChild);};
 
-    var matchingArticleUrls = new Set();
     var allArticleDetails = new Map();
-
-    var allTagsUnchecked = true;
-    var firstCheckedTag = true;
+    var numberOfSelectedTags = 0;
 
     for (var tagId of selectedTagIds)
     {
@@ -140,45 +144,50 @@ span.tag {
       if (tag == undefined) {
         continue;
       }
+      numberOfSelectedTags++;
 
       var articlesUrlsForTag = new Set();
       if (tag) {
         for (var a of tag.articles) {
           articlesUrlsForTag.add(a.url);
-          allArticleDetails.set(a.url, a);
-        }
-      }
-
-      // if this is the first tag then the matching artciles are just any that are
-      // tagged that way. Subsequent tags restirct the set by taking the intersection
-      if (firstCheckedTag) {
-        matchingArticleUrls = articlesUrlsForTag;
-        firstCheckedTag = false;
-      } else {
-        var intersection = new Set();
-        for (var e of matchingArticleUrls) {
-          if (articlesUrlsForTag.has(e))
-          {
-            intersection.add(e);
+          if (allArticleDetails.has(a.url)){
+            allArticleDetails.get(a.url).count++;
+          } else {
+            allArticleDetails.set(a.url, {"title" : a.title, "url" : a.url, "count" : 1});
           }
         }
-        matchingArticleUrls = intersection;
       }
     }
 
-    document.getElementById("nothingmatches").style.display=((matchingArticleUrls.size != 0)?"none":"inherit");
+    var sortedArticles = Array.from(allArticleDetails.values());
+    sortedArticles.sort((l, r) => {return r.count - l.count});
 
-    for (var e of matchingArticleUrls) {
-      var article = allArticleDetails.get(e);
+    if (numberOfSelectedTags == 0) {
+      document.getElementById("nothingmatches").style.display = "none";
+      document.getElementById("noexactmatches").style.display = "none";
+    } else if (sortedArticles.length == 0) {
+      document.getElementById("nothingmatches").style.display = "inherit";
+      document.getElementById("noexactmatches").style.display = "none";
+    } else if (sortedArticles[0].count != numberOfSelectedTags) {
+      document.getElementById("nothingmatches").style.display = "none";
+      document.getElementById("noexactmatches").style.display = "inherit";
+    } else {
+      document.getElementById("nothingmatches").style.display = "none";
+      document.getElementById("noexactmatches").style.display = "none";
+    }
 
-      var listItemElement = createElementWithAttributes("li", {});
+    for (var article of sortedArticles) {
+      var articleClass = "";
+      if (numberOfSelectedTags > 1) {
+        var articleClass = (article.count == numberOfSelectedTags)?"exactmatch":"partialmatch";
+      }
+
+      var listItemElement = createElementWithAttributes("li", {"class" : articleClass});
       var aElement = createElementWithAttributes("a", {"href" : article.url}, article.title);
 
       listItemElement.appendChild(aElement);
       targetElement.appendChild(listItemElement);
     }
-
-
   }
 </script>
 
@@ -190,6 +199,7 @@ span.tag {
 
     <p id="tags"></p>
     <p id="nothingmatches">Nothing matches this combination of selected tags</p>
+    <p id="noexactmatches">There are no exact matches for the combination of selected tags. The following articles match at least one selected tag.</p>
     <ul id="matching-articles"></ul>
 
 </body>
