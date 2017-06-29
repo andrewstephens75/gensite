@@ -114,12 +114,18 @@ class FileDef:
 
 
 class SourceFileDef(FileDef):
-    def __init__(self, file_name, cache=False, relative_path = ""):
+    def __init__(self, file_name, cache=False, relative_path = "", site_config = None):
         super().__init__(file_name, cache, relative_path)
+        self.summary = ""
+        self.images = []
+        self.processed_text = ""
+        self.site_config = site_config
         try:
             self.metadata, self.contents = self.split_header_contents()
             self.original_date = time.strptime( self.metadata["original_date"], "%a, %d %b %Y %H:%M:%SZ")
             self.output_filename = make_filename_safe_title(self.metadata["title"])
+            self.processed_text = markdown.markdown(self.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension(), tufte_figure.TufteFigureExtension()])
+            self.summarize_markup();
         except Exception as err:
             raise CompileError(str(err), file_name)
 
@@ -191,6 +197,38 @@ class SourceFileDef(FileDef):
         else:
             return self.metadata["tags"]
 
+    def summarize_markup(self):
+        """ parse some markup and try to extract some meaningful text """
+        try:
+            elements = lxml.html.fragments_fromstring(self.processed_text);
+        except lxml.etree.XMLSyntaxError:
+            print("XMLSyntaxError when parsing markup")
+            return
+
+        summary = ""
+
+        for e in elements:
+            for i in e.findall(".//img"):
+                folder = os.path.split(self.dest_file_name())[0]
+                image_url = self.site_config.root_url + folder + "/" + i.get("src");
+                self.images.append(image_url);
+
+            if (e.tag != "p"):
+                continue
+
+            for t in e.findall(".//span"):
+                c = t.get("class");
+                if c:
+                    if ((c.find("sidenote") != -1) or
+                       (c.find("importantmarginnote") != -1)):
+                       t.drop_tree();
+
+            summary += e.text_content();
+
+        """ grab the first 30 words """
+        summary = " ".join(summary.split(maxsplit=30)[:30]) + "...";
+        self.summary = summary;
+
 class GenSiteTemplate:
     """ Contains the template handling functionality """
 
@@ -226,37 +264,6 @@ class GenSiteTemplate:
             return html_source.replace(tag, html.escape(replacement_text, quote=True))
         else:
             return html_source.replace(tag, replacement_text)
-
-    def summerize_markup(self, markedup_text):
-        """ parse some markup and try to extract some meaningful text """
-        try:
-            elements = lxml.html.fragments_fromstring(markedup_text);
-        except lxml.etree.XMLSyntaxError:
-            print("XMLSyntaxError when parsing markup")
-            return "", []
-
-        images = [];
-        summary = "";
-
-        for e in elements:
-            for i in e.findall(".//img"):
-                images.append(i.get("src"));
-
-            if (e.tag != "p"):
-                continue
-
-            for t in e.findall(".//span"):
-                c = t.get("class");
-                if c:
-                    if ((c.find("sidenote") != -1) or
-                       (c.find("importantmarginnote") != -1)):
-                       t.drop_tree();
-
-            summary += e.text_content();
-
-        """ grab the first 30 words """
-        summary = " ".join(summary.split(maxsplit=30)[:30]) + "...";
-        return summary, images;
 
     def process_source_file(self, sourceFileDef, destDir, site_config, additional_mustache_tags = {}, force_write = False):
         """ process a source file and output the files required """
@@ -299,12 +306,12 @@ class GenSiteTemplate:
 
         tag_link_text = "in <a href=\"/tagcloud.html#" + "+".join(all_tag_ids) + "\">" + ", ".join(all_tag_titles) + "</a>";
 
-        article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension(), tufte_figure.TufteFigureExtension()])
-        summary, images = self.summerize_markup(article_text);
+        article_text = sourceFileDef.processed_text;
+        summary = sourceFileDef.summary;
         image_url = "";
-        if (len(images) > 0):
-            folder = os.path.split(sourceFileDef.dest_file_name())[0]
-            image_url = site_config.root_url + folder + "/" + images[0];
+        image_url = "";
+        if (len(sourceFileDef.images) > 0):
+            image_url = sourceFileDef.images[0];
 
         html_source = self.templates[template_type].contents
         for t,v in additional_mustache_tags.items():
@@ -379,7 +386,7 @@ class GenSiteTemplate:
         emit_grouped_list(list_element)
         return index_element
 
-def gather_source_files(topdir, extensions):
+def gather_source_files(topdir, extensions, site_config):
     """ returns a list of files that will be processed """
     lowExt = [t.lower() for t in extensions]
     results = []
@@ -387,7 +394,7 @@ def gather_source_files(topdir, extensions):
         for filename in files:
             ext = os.path.splitext(filename)[1]
             if (ext in lowExt):
-                results.append(SourceFileDef(os.path.join(root, filename)))
+                results.append(SourceFileDef(os.path.join(root, filename),  site_config = site_config))
     return results
 
 class UTC(datetime.tzinfo):
@@ -482,7 +489,7 @@ def gensite(rootdir):
     destdir = os.path.join(rootdir, site_config.destination_dir)
     sourcedir = os.path.join(rootdir, site_config.source_dir)
 
-    files = gather_source_files(sourcedir, [".md"])
+    files = gather_source_files(sourcedir, [".md"], site_config)
 
     articles, unpublished_articles = get_articles(files)
 
@@ -522,7 +529,12 @@ def gensite(rootdir):
         fe.id(link)
         fe.title(entry.title())
         fe.link(link={"href":link})
-        fe.content(src=site_config.root_url + dest_file_name)
+
+        if (entry.summary == ""):
+            fe.summary(entry.title())
+        else:
+            fe.summary(entry.summary)
+
         date = datetime.datetime.fromtimestamp(time.mktime(entry.original_date), UTC())
         fe.published(date)
         fe.updated(date)
