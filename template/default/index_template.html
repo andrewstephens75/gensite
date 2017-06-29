@@ -6,8 +6,14 @@
   <title>{{title}}</title>
   <meta name="description" content="{{description}}" />
   <meta name="author" content="{{author}}" />
+  <meta property="og:description"        content="{{first_words}}" />
+  <meta property="og:image"              content="{{first_image}}" />
+  <meta property="twitter:card"          content="summary" />
+  <meta property="twitter:site"          content="{{twitter_handle}}" />
+  <meta property="twitter:title"         content="{{title}}" />
+
   <link rel="stylesheet" href="{{css_relative_path}}css/tufte.css" type="text/css" />
-  <link rel="icon" href="/favicon.ico" type="image/png" /> 
+  <link rel="icon" href="/favicon.ico" type="image/png" />
 </head>
 
 <body>
@@ -15,7 +21,7 @@
   </div>
     <h1>{{title}}</h1>
     {{article_content}}
-    
+
     {{index_content}}
 </body>
 </html>

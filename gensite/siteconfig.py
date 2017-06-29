@@ -30,6 +30,7 @@ class SiteConfig:
     self.root_url         = site_config["root_url"]
     self.relative_index   = site_config["relative_index"]
     self.navigation_menu  = site_config["navigation_menu"]
+    self.twitter_handle   = site_config["twitter_handle"]
 
     self.allowed_tags = {}
     tags = site_config["allowed_tags"]

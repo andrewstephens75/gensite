@@ -227,6 +227,36 @@ class GenSiteTemplate:
         else:
             return html_source.replace(tag, replacement_text)
 
+    def summerize_markup(self, markedup_text):
+        """ parse some markup and try to extract some meaningful text """
+        try:
+            elements = lxml.html.fragments_fromstring(markedup_text);
+        except lxml.etree.XMLSyntaxError:
+            print("XMLSyntaxError when parsing markup")
+            return "", []
+
+        images = [];
+        summary = "";
+
+        for e in elements:
+            for i in e.findall(".//img"):
+                images.append(i.get("src"));
+
+            if (e.tag != "p"):
+                continue
+
+            for t in e.findall(".//span"):
+                c = t.get("class");
+                if c:
+                    if ((c.find("sidenote") != -1) or
+                       (c.find("importantmarginnote") != -1)):
+                       t.drop_tree();
+
+            summary += e.text_content();
+
+        """ grab the first 30 words """
+        summary = " ".join(summary.split(maxsplit=30)[:30]) + "...";
+        return summary, images;
 
     def process_source_file(self, sourceFileDef, destDir, site_config, additional_mustache_tags = {}, force_write = False):
         """ process a source file and output the files required """
@@ -269,6 +299,13 @@ class GenSiteTemplate:
 
         tag_link_text = "in <a href=\"/tagcloud.html#" + "+".join(all_tag_ids) + "\">" + ", ".join(all_tag_titles) + "</a>";
 
+        article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension(), tufte_figure.TufteFigureExtension()])
+        summary, images = self.summerize_markup(article_text);
+        image_url = "";
+        if (len(images) > 0):
+            folder = os.path.split(sourceFileDef.dest_file_name())[0]
+            image_url = site_config.root_url + folder + "/" + images[0];
+
         html_source = self.templates[template_type].contents
         for t,v in additional_mustache_tags.items():
             html_source = self.replace_mustache_tag(html_source, "{{" + t + "}}", v)
@@ -278,11 +315,14 @@ class GenSiteTemplate:
         html_source = self.replace_mustache_tag(html_source,"{{pretty_date}}", pretty_date(sourceFileDef.original_date))
         html_source = self.replace_mustache_tag(html_source,"{{full_url}}", full_url)
         html_source = self.replace_mustache_tag(html_source,"{{tag_links}}", tag_link_text)
+        html_source = self.replace_mustache_tag(html_source,"{{twitter_handle}}", site_config.twitter_handle, encode=True)
+        html_source = self.replace_mustache_tag(html_source,"{{first_words}}", summary, encode=True)
+        html_source = self.replace_mustache_tag(html_source,"{{first_image}}", image_url)
 
         html_source = html_source.replace("{{css_relative_path}}", relative_path_to_top)
 
-        article_text = markdown.markdown(sourceFileDef.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension(), tufte_figure.TufteFigureExtension()])
         html_source = html_source.replace("{{article_content}}", article_text)
+
 
         with open(outputFileDef.file_name, "w", encoding="utf-8") as f:
             f.write(html_source)
@@ -474,7 +514,6 @@ def gensite(rootdir):
     fg.title(site_config.blog_name)
     fg.link(href= site_config.root_url, rel='alternate')
     fg.description(site_config.blog_description)
-    fg.ttl(6 * 60)
 
     for entry in articles:
         dest_file_name = entry.dest_file_name();
