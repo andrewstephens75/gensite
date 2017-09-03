@@ -203,7 +203,8 @@ def gather_source_files(topdir, extensions, site_config):
         for filename in files:
             ext = os.path.splitext(filename)[1]
             if (ext in lowExt):
-                results.append(SourceFileDef(os.path.join(root, filename),  site_config = site_config))
+                rel_path = root[len(topdir) + 1:]
+                results.append(SourceFileDef(os.path.join(root, filename),  relative_path = rel_path, site_config = site_config))
     return results
 
 class UTC(datetime.tzinfo):
