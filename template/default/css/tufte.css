@@ -37,7 +37,7 @@
 /* Tufte CSS styles */
 html { font-size: 14px; }
 
-header 
+header
 {
   position: absolute;
   color: #FFFFFF;
@@ -49,7 +49,7 @@ header
   z-index: 100;
 }
 
-nav 
+nav
 {
   position: relative;
   height: 1rem;
@@ -104,14 +104,14 @@ p.subtitle { font-style: italic;
              font-size: 1.8rem;
              display: block;
              line-height: 1; }
-             
+
 p.byline {
              line-height: 1rem;
              margin-top: -1.1rem;
              margin-bottom: 0rem;
              font-size: 1rem;
              font-style: italic; }
- 
+
 .numeral { font-family: et-book-roman-old-style; }
 
 .danger { color: red; }
@@ -204,7 +204,7 @@ a:link::-moz-selection { text-shadow: 0.03em 0 #b4d5fe, -0.03em 0 #b4d5fe, 0 0.0
 
 /* Sidenotes, margin notes, figures, captions */
 img { max-width: 100%; min-width: 100%; }
-img.inline-icon { max-height: 1.5rem; 
+img.inline-icon { max-height: 1.5rem;
                   min-width: 0; }
 
 .sidenote, .marginnote { float: right;
@@ -217,7 +217,7 @@ img.inline-icon { max-height: 1.5rem;
                          line-height: 1.3;
                          vertical-align: baseline;
                          position: relative; }
-                      
+
 .importantmarginnote { float: right;
                         clear: right;
                         margin-right: -60%;
@@ -260,7 +260,7 @@ div.fullwidth, table.fullwidth { width: 100%; }
 div.table-wrapper { overflow-x: auto;
                     font-family: "Trebuchet MS", "Gill Sans", "Gill Sans MT", sans-serif; }
 
-@media screen and (max-width: 760px), (orientation : portrait) { 
+@media screen and (max-width: 760px), (orientation : portrait) {
                                        html { -webkit-text-size-adjust: none;
                                               font-size: 40px;}
                                        p, footer { width: 90%; }
@@ -348,7 +348,7 @@ div.index div.group li
                             div.table-wrapper, table, table.booktabs { width: 85%; }
                             div.table-wrapper { border-right: 1px solid #efefef; }
                             img { width: 100%; }
-                            img.inline-icon { max-height: 1.5rem; 
+                            img.inline-icon { max-height: 1.5rem;
                                               min-width: 0;
                                               width: auto;
                                               }
@@ -357,25 +357,25 @@ div.index div.group li
 .codehilite .hll { background-color: #404040 }
 .codehilite .c { color: #999999; font-style: italic } /* Comment */
 .codehilite .err { color: #a61717; background-color: #e3d2d2 } /* Error */
-.codehilite .g { color: #d0d0d0 } /* Generic */
+.codehilite .g { color: #767676 } /* Generic */
 .codehilite .k { color: #6ab825; font-weight: bold } /* Keyword */
-.codehilite .l { color: #d0d0d0 } /* Literal */
-.codehilite .n { color: #d0d0d0 } /* Name */
-.codehilite .o { color: #d0d0d0 } /* Operator */
-.codehilite .x { color: #d0d0d0 } /* Other */
-.codehilite .p { color: #d0d0d0 } /* Punctuation */
+.codehilite .l { color: #767676 } /* Literal */
+.codehilite .n { color: #767676 } /* Name */
+.codehilite .o { color: #767676 } /* Operator */
+.codehilite .x { color: #767676 } /* Other */
+.codehilite .p { color: #767676 } /* Punctuation */
 .codehilite .cm { color: #999999; font-style: italic } /* Comment.Multiline */
 .codehilite .cp { color: #cd2828; font-weight: bold } /* Comment.Preproc */
 .codehilite .c1 { color: #999999; font-style: italic } /* Comment.Single */
 .codehilite .cs { color: #e50808; font-weight: bold; background-color: #520000 } /* Comment.Special */
 .codehilite .gd { color: #d22323 } /* Generic.Deleted */
-.codehilite .ge { color: #d0d0d0; font-style: italic } /* Generic.Emph */
+.codehilite .ge { color: #767676; font-style: italic } /* Generic.Emph */
 .codehilite .gr { color: #d22323 } /* Generic.Error */
 .codehilite .gh { color: #ffffff; font-weight: bold } /* Generic.Heading */
 .codehilite .gi { color: #589819 } /* Generic.Inserted */
 .codehilite .go { color: #cccccc } /* Generic.Output */
 .codehilite .gp { color: #aaaaaa } /* Generic.Prompt */
-.codehilite .gs { color: #d0d0d0; font-weight: bold } /* Generic.Strong */
+.codehilite .gs { color: #767676; font-weight: bold } /* Generic.Strong */
 .codehilite .gu { color: #ffffff; text-decoration: underline } /* Generic.Subheading */
 .codehilite .gt { color: #d22323 } /* Generic.Traceback */
 .codehilite .kc { color: #6ab825; font-weight: bold } /* Keyword.Constant */
@@ -384,7 +384,7 @@ div.index div.group li
 .codehilite .kp { color: #6ab825 } /* Keyword.Pseudo */
 .codehilite .kr { color: #6ab825; font-weight: bold } /* Keyword.Reserved */
 .codehilite .kt { color: #6ab825; font-weight: bold } /* Keyword.Type */
-.codehilite .ld { color: #d0d0d0 } /* Literal.Date */
+.codehilite .ld { color: #767676 } /* Literal.Date */
 .codehilite .m { color: #3677a9 } /* Literal.Number */
 .codehilite .s { color: #ed9d13 } /* Literal.String */
 .codehilite .na { color: #bbbbbb } /* Name.Attribute */
@@ -392,13 +392,13 @@ div.index div.group li
 .codehilite .nc { color: #447fcf; text-decoration: underline } /* Name.Class */
 .codehilite .no { color: #40ffff } /* Name.Constant */
 .codehilite .nd { color: #ffa500 } /* Name.Decorator */
-.codehilite .ni { color: #d0d0d0 } /* Name.Entity */
+.codehilite .ni { color: #767676 } /* Name.Entity */
 .codehilite .ne { color: #bbbbbb } /* Name.Exception */
 .codehilite .nf { color: #447fcf } /* Name.Function */
-.codehilite .nl { color: #d0d0d0 } /* Name.Label */
+.codehilite .nl { color: #767676 } /* Name.Label */
 .codehilite .nn { color: #447fcf; text-decoration: underline } /* Name.Namespace */
-.codehilite .nx { color: #d0d0d0 } /* Name.Other */
-.codehilite .py { color: #d0d0d0 } /* Name.Property */
+.codehilite .nx { color: #767676 } /* Name.Other */
+.codehilite .py { color: #767676 } /* Name.Property */
 .codehilite .nt { color: #6ab825; font-weight: bold } /* Name.Tag */
 .codehilite .nv { color: #40ffff } /* Name.Variable */
 .codehilite .ow { color: #6ab825; font-weight: bold } /* Operator.Word */
