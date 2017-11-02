@@ -228,6 +228,11 @@ img.inline-icon { max-height: 1.5rem;
                         line-height: 1.3;
                         vertical-align: baseline;
                         position: relative; }
+                        
+li .importantmarginnote {
+  margin-right: -74%;
+  
+} 
 
 .table-caption { float:right;
                  clear:right;
@@ -325,10 +330,10 @@ div.index div.group li
                                                                    vertical-align: baseline;
                                                                    position: relative; }
                              .importantmarginnote { display: block;
-                                                                   float: right;
+                                                                   float: none;
                                                                    left: 0.2rem;
                                                                    clear: none;
-                                                                   width: 30%;
+                                                                   width: 80%;
                                                                    margin: 0.1rem 2.5%;
                                                                    vertical-align: baseline;
                                                                    position: relative; }
