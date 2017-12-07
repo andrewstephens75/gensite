@@ -284,7 +284,8 @@ def build_tagging_data(site_config, articles):
         articles_for_tag = tagged_articles[tagname]
         for a in articles_for_tag:
             t = { 'title' : a.title() ,
-                  'url' : a.dest_file_name()}
+                  'url' : a.dest_file_name() ,
+                  'date' : time.mktime(a.original_date)}
             tagdata['articles'].append(t)
 
         all_tags.append(tagdata)

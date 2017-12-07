@@ -160,14 +160,14 @@ span.tag {
           if (allArticleDetails.has(a.url)){
             allArticleDetails.get(a.url).count++;
           } else {
-            allArticleDetails.set(a.url, {"title" : a.title, "url" : a.url, "count" : 1});
+            allArticleDetails.set(a.url, {"title" : a.title, "url" : a.url, "date" : a.date, "count" : 1});
           }
         }
       }
     }
 
     var sortedArticles = Array.from(allArticleDetails.values());
-    sortedArticles.sort((l, r) => {return r.count - l.count});
+    sortedArticles.sort((l, r) => {if (r.count == l.count) {return r.date - l.date;} else return r.count - l.count});
 
     if (numberOfSelectedTags == 0) {
       document.getElementById("nothingmatches").style.display = "none";
