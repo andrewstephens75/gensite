@@ -356,7 +356,7 @@ def gensite(rootdir):
     index_element = template.generate_index(articles)
     index = [e for e in files if e.template_type() == "index"][0]
     i = str(lxml.etree.tostring(index_element, pretty_print=True), "utf-8")
-    template.process_source_file(index, destdir, site_config, additional_mustache_tags = {"index_content" : i}, force_write=True)
+    template.process_source_file(index, destdir, site_config, additional_mustache_tags = {"index_content" : i, "article_menu" : article_menu}, force_write=True)
 
     """ tag cloud stuff """
     tag_cloud_template = [e for e in files if e.template_type() == "tag_cloud"][0]
