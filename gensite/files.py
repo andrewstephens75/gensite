@@ -117,8 +117,7 @@ class GenSiteTemplate:
 
         article_text = sourceFileDef.processed_text;
         summary = sourceFileDef.summary;
-        image_url = "";
-        image_url = "";
+        image_url = "/favicon.ico";
         if (len(sourceFileDef.images) > 0):
             image_url = sourceFileDef.images[0];
 
