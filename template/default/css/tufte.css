@@ -369,7 +369,7 @@ div.index div.group li
                                               }
                            }
 
-div.codehilite { overflow-x : scroll; }
+div.codehilite { overflow-x : auto; }
 .codehilite .hll { background-color: #404040 }
 .codehilite .c { color: #999999; font-style: italic } /* Comment */
 .codehilite .err { color: #a61717; background-color: #e3d2d2 } /* Error */
