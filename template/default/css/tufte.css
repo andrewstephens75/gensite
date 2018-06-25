@@ -341,6 +341,9 @@ div.index div.group li
             margin-left: 1%;
             margin-right: 1%; 
           }
+      html {
+        font-size: 20px;
+      }
 
       p { width: 100% }
       label.margin-toggle:not(.sidenote-number) { display: inline; }
