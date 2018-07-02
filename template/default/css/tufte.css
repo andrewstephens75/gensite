@@ -35,7 +35,7 @@
 }
 
 /* Tufte CSS styles */
-html { font-size: 14px; }
+html { font-size: 13px; }
 
 header
 {
@@ -278,7 +278,6 @@ div.table-wrapper { overflow-x: auto;
                     font-family: "Trebuchet MS", "Gill Sans", "Gill Sans MT", sans-serif; }
 
 @media screen and (max-width: 760px), (orientation : portrait) {
-                                       html { text-size-adjust: 400%;}
                                        p, footer { width: 100%; }
                                        pre.code { width: 100%; }
                                        ul { width: 100%; }
@@ -350,7 +349,7 @@ div.index div.group li
       .sidenote, .marginnote { display: none; }
       .margin-toggle:checked + .sidenote,
       .margin-toggle:checked + .marginnote { display: block;
-                                              float: left;
+                                              float: none;
                                               clear: both;
                                               width: 80%;
                                               margin-left: 10%;
