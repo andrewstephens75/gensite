@@ -80,7 +80,7 @@ class GenSiteTemplate:
         title = header["title"]
         author = header["author"]
         template_type = sourceFileDef.template_type()
-        full_url = site_config.root_url + sourceFileDef.dest_file_name()
+        full_url = site_config.root_url + sourceFileDef.dest_relative_url()
 
         dest_file_path = os.path.join(destDir, sourceFileDef.dest_file_name())
         dest_file_dir = os.path.split(dest_file_path)[0]
@@ -186,7 +186,7 @@ class GenSiteTemplate:
             title = f.title()
             template_type = f.template_type()
             item = lxml.html.Element("li")
-            link = lxml.html.Element("a", {"href" : f.dest_file_name()})
+            link = lxml.html.Element("a", {"href" : f.dest_relative_url()})
             link.text = f.title()
             item.append(link)
             list_element.append(item)
@@ -283,7 +283,7 @@ def build_tagging_data(site_config, articles):
         articles_for_tag = tagged_articles[tagname]
         for a in articles_for_tag:
             t = { 'title' : a.title() ,
-                  'url' : a.dest_file_name() ,
+                  'url' : a.dest_relative_url() ,
                   'date' : time.mktime(a.original_date)}
             tagdata['articles'].append(t)
 
@@ -333,9 +333,9 @@ def gensite(rootdir):
     fg.description(site_config.blog_description)
 
     for entry in articles:
-        dest_file_name = entry.dest_file_name();
+        dest_relative_url = entry.dest_relative_url();
         fe = fg.add_entry()
-        link = site_config.root_url + dest_file_name
+        link = site_config.root_url + dest_relative_url
         fe.id(link)
         fe.title(entry.title())
         fe.link(link={"href":link})

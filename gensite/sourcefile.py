@@ -12,6 +12,7 @@ import lxml.html
 import lxml.etree
 import datetime
 import html
+import urllib
 
 from . import siteconfig
 from . import errors
@@ -156,6 +157,11 @@ class SourceFileDef(FileDef):
             return os.path.join(self.relative_path, self.output_filename + ".html")
         else:
             raise CompileError("Unknown template type " + t, self.file_name)
+
+    def dest_relative_url(self):
+        t = self.dest_file_name()
+        return urllib.parse.quote(t)
+
 
     def template_type(self):
         return self.metadata["template_type"]
