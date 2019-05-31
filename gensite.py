@@ -16,6 +16,7 @@ import subprocess
 from gensite import files
 from gensite import siteconfig
 from gensite import userconfig
+from gensite import errors
 
 class CommandError(Exception):
     def __init__(self, message):

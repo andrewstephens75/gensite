@@ -15,7 +15,7 @@ import html
 import urllib
 
 from . import siteconfig
-from . import errors
+from .errors import CompileError
 
 
 def make_filename_safe_title(s):
@@ -102,7 +102,10 @@ class SourceFileDef(FileDef):
         try:
             self.metadata, self.contents = self.split_header_contents()
             self.original_date = time.strptime( self.metadata["original_date"], "%a, %d %b %Y %H:%M:%SZ")
-            self.output_filename = make_filename_safe_title(self.metadata["title"])
+            if ("filename" in self.metadata):
+                self.output_filename = make_filename_safe_title(self.metadata["filename"])
+            else:
+                self.output_filename = make_filename_safe_title(self.metadata["title"])
             self.processed_text = markdown.markdown(self.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension(), tufte_figure.TufteFigureExtension()])
             self.summarize_markup();
         except Exception as err:
