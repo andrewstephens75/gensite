@@ -17,191 +17,189 @@
   <link rel="stylesheet" href="{{css_relative_path}}css/tufte.css" type="text/css" />
   <link rel="icon" href="/favicon.ico" type="image/png" />
   <link rel="canonical" href="{{full_url}}" />
-</head>
-<script src="/visitlog.js" async=true></script>
-<style>
-
-span.tag {
-    border-radius: 2px;
-    border-width: 1px;
-    background: #aaaa88;
-    padding: 0px 2px;
-    margin: 2px;
-    white-space:nowrap;
-  }
-
-  li.exactmatch > a {
-  }
-
-  li.partialmatch > a {
-    color: gray;
-  }
-</style>
-
-
-<script type="text/ecmascript">
-  var tag_database = {{tag_json}};
-  document.addEventListener("DOMContentLoaded", function(event) {
-    setupTags();
-  });
-  window.onpopstate = function(event){ stateChangedFromHistory(); };
-
-  function getTagsFromUrl()
-  {
-    var hashString = window.location.hash;
-    var tagIdsFromUrl = new Set();
-    if (hashString.length > 0) {
-      hashString = hashString.substring(1);
-
-      var tagIds = hashString.split("+");
-      for (t of tagIds) {
-        tagIdsFromUrl.add(t);
+  <script src="/visitlog.js" async=true></script>
+  <style>
+    span.tag {
+        border-radius: 2px;
+        border-width: 1px;
+        background: #aaaa88;
+        padding: 0px 2px;
+        margin: 2px;
+        white-space:nowrap;
       }
-    }
-    return tagIdsFromUrl;
-
-  }
-
-  function stateChangedFromHistory()
-  {
-    var selectedTags = getTagsFromUrl();
-
-    var tagInputElements = document.getElementById("tags").getElementsByTagName("input");
-    for (var i = 0; i < tagInputElements.length; i++) {
-      tagInputElements[i].checked = selectedTags.has(tagInputElements[i].getAttribute("value"));
-    }
-
-    showArticlesForSelectedTags(selectedTags);
-  }
-
-  function createElementWithAttributes(tag, attribs, text)
-  {
-    var element = document.createElement(tag);
-    for (var i in attribs) {
-      element.setAttribute(i, attribs[i]);
-    }
-
-    if (text != null)
-    {
-      var textElement = document.createTextNode(text);
-      element.appendChild(textElement);
-    }
-    return element;
-  }
-
-  function setupTags()
-  {
-    tag_database.sort((l, r) => {return l.title.localeCompare(r.title)});
-
-    var tagIdsFromUrl = getTagsFromUrl();
-
-    for (var i in tag_database) {
-      var tag = tag_database[i];
-
-      var checkboxId = "check" + tag.tag;
-      var tagSpan = createElementWithAttributes("span", {"class" : "tag"});
-      var tagCheck = createElementWithAttributes("input", {"type" : "checkbox",
-                                                           "id" : checkboxId,
-                                                           "name" : tag.tag,
-                                                           "value" : tag.tag});
-      if (tagIdsFromUrl.has(tag.tag)) {
-        tagCheck.checked = true;
+    
+      li.exactmatch > a {
       }
-      var tagLabel = createElementWithAttributes("label", {"for" : checkboxId}, tag.title);
-
-      tagSpan.appendChild(tagLabel);
-      tagSpan.appendChild(tagCheck);
-
-      tagCheck.addEventListener("change", stateChanged);
-
-      document.getElementById("tags").appendChild(tagSpan);
-      document.getElementById("tags").appendChild(document.createTextNode(" "));
-    }
-
-    showArticlesForSelectedTags(tagIdsFromUrl);
-  }
-
-  function stateChanged()
-  {
-    var tagInputElements = document.getElementById("tags").getElementsByTagName("input");
-    var selectedTags = [];
-
-    for (var i = 0; i < tagInputElements.length; i++) {
-      if (tagInputElements[i].checked) {
-        selectedTags.push(tagInputElements[i].getAttribute("value"));
+    
+      li.partialmatch > a {
+        color: gray;
       }
-    }
-
-    var hashstate = "#" + selectedTags.join("+");
-    window.history.pushState({}, "", hashstate);
-
-    showArticlesForSelectedTags(selectedTags);
-  }
-
-  function showArticlesForSelectedTags(selectedTagIds)
-  {
-    var targetElement = document.getElementById("matching-articles");
-    while (targetElement.firstChild) {targetElement.removeChild(targetElement.firstChild);};
-
-    var allArticleDetails = new Map();
-    var numberOfSelectedTags = 0;
-
-    for (var tagId of selectedTagIds)
-    {
-      var tag = tag_database.find((x) => {return (x.tag === tagId);});
-
-      if (tag == undefined) {
-        continue;
-      }
-      numberOfSelectedTags++;
-
-      var articlesUrlsForTag = new Set();
-      if (tag) {
-        for (var a of tag.articles) {
-          articlesUrlsForTag.add(a.url);
-          if (allArticleDetails.has(a.url)){
-            allArticleDetails.get(a.url).count++;
-          } else {
-            allArticleDetails.set(a.url, {"title" : a.title, "url" : a.url, "date" : a.date, "count" : 1});
-          }
-        }
-      }
-    }
-
-    var sortedArticles = Array.from(allArticleDetails.values());
-    sortedArticles.sort((l, r) => {if (r.count == l.count) {return r.date - l.date;} else return r.count - l.count});
-
-    if (numberOfSelectedTags == 0) {
-      document.getElementById("nothingmatches").style.display = "none";
-      document.getElementById("noexactmatches").style.display = "none";
-    } else if (sortedArticles.length == 0) {
-      document.getElementById("nothingmatches").style.display = "inherit";
-      document.getElementById("noexactmatches").style.display = "none";
-    } else if (sortedArticles[0].count != numberOfSelectedTags) {
-      document.getElementById("nothingmatches").style.display = "none";
-      document.getElementById("noexactmatches").style.display = "inherit";
-    } else {
-      document.getElementById("nothingmatches").style.display = "none";
-      document.getElementById("noexactmatches").style.display = "none";
-    }
-
-    for (var article of sortedArticles) {
-      var articleClass = "";
-      if (numberOfSelectedTags > 1) {
-        var articleClass = (article.count == numberOfSelectedTags)?"exactmatch":"partialmatch";
-      }
-
-      var listItemElement = createElementWithAttributes("li", {"class" : articleClass});
-      var aElement = createElementWithAttributes("a", {"href" : article.url}, article.title);
-
-      listItemElement.appendChild(aElement);
-      targetElement.appendChild(listItemElement);
-    }
-  }
-</script>
-
+    </style>
+  </head>
 
   <body class="staticpage">
+    <script type="text/ecmascript">
+      var tag_database = {{tag_json}};
+      document.addEventListener("DOMContentLoaded", function(event) {
+        setupTags();
+      });
+      window.onpopstate = function(event){ stateChangedFromHistory(); };
+    
+      function getTagsFromUrl()
+      {
+        var hashString = window.location.hash;
+        var tagIdsFromUrl = new Set();
+        if (hashString.length > 0) {
+          hashString = hashString.substring(1);
+    
+          var tagIds = hashString.split("+");
+          for (t of tagIds) {
+            tagIdsFromUrl.add(t);
+          }
+        }
+        return tagIdsFromUrl;
+    
+      }
+    
+      function stateChangedFromHistory()
+      {
+        var selectedTags = getTagsFromUrl();
+    
+        var tagInputElements = document.getElementById("tags").getElementsByTagName("input");
+        for (var i = 0; i < tagInputElements.length; i++) {
+          tagInputElements[i].checked = selectedTags.has(tagInputElements[i].getAttribute("value"));
+        }
+    
+        showArticlesForSelectedTags(selectedTags);
+      }
+    
+      function createElementWithAttributes(tag, attribs, text)
+      {
+        var element = document.createElement(tag);
+        for (var i in attribs) {
+          element.setAttribute(i, attribs[i]);
+        }
+    
+        if (text != null)
+        {
+          var textElement = document.createTextNode(text);
+          element.appendChild(textElement);
+        }
+        return element;
+      }
+    
+      function setupTags()
+      {
+        tag_database.sort((l, r) => {return l.title.localeCompare(r.title)});
+    
+        var tagIdsFromUrl = getTagsFromUrl();
+    
+        for (var i in tag_database) {
+          var tag = tag_database[i];
+    
+          var checkboxId = "check" + tag.tag;
+          var tagSpan = createElementWithAttributes("span", {"class" : "tag"});
+          var tagCheck = createElementWithAttributes("input", {"type" : "checkbox",
+                                                               "id" : checkboxId,
+                                                               "name" : tag.tag,
+                                                               "value" : tag.tag});
+          if (tagIdsFromUrl.has(tag.tag)) {
+            tagCheck.checked = true;
+          }
+          var tagLabel = createElementWithAttributes("label", {"for" : checkboxId}, tag.title);
+    
+          tagSpan.appendChild(tagLabel);
+          tagSpan.appendChild(tagCheck);
+    
+          tagCheck.addEventListener("change", stateChanged);
+    
+          document.getElementById("tags").appendChild(tagSpan);
+          document.getElementById("tags").appendChild(document.createTextNode(" "));
+        }
+    
+        showArticlesForSelectedTags(tagIdsFromUrl);
+      }
+    
+      function stateChanged()
+      {
+        var tagInputElements = document.getElementById("tags").getElementsByTagName("input");
+        var selectedTags = [];
+    
+        for (var i = 0; i < tagInputElements.length; i++) {
+          if (tagInputElements[i].checked) {
+            selectedTags.push(tagInputElements[i].getAttribute("value"));
+          }
+        }
+    
+        var hashstate = "#" + selectedTags.join("+");
+        window.history.pushState({}, "", hashstate);
+    
+        showArticlesForSelectedTags(selectedTags);
+      }
+    
+      function showArticlesForSelectedTags(selectedTagIds)
+      {
+        var targetElement = document.getElementById("matching-articles");
+        while (targetElement.firstChild) {targetElement.removeChild(targetElement.firstChild);};
+    
+        var allArticleDetails = new Map();
+        var numberOfSelectedTags = 0;
+    
+        for (var tagId of selectedTagIds)
+        {
+          var tag = tag_database.find((x) => {return (x.tag === tagId);});
+    
+          if (tag == undefined) {
+            continue;
+          }
+          numberOfSelectedTags++;
+    
+          var articlesUrlsForTag = new Set();
+          if (tag) {
+            for (var a of tag.articles) {
+              articlesUrlsForTag.add(a.url);
+              if (allArticleDetails.has(a.url)){
+                allArticleDetails.get(a.url).count++;
+              } else {
+                allArticleDetails.set(a.url, {"title" : a.title, "url" : a.url, "date" : a.date, "count" : 1});
+              }
+            }
+          }
+        }
+    
+        var sortedArticles = Array.from(allArticleDetails.values());
+        sortedArticles.sort((l, r) => {if (r.count == l.count) {return r.date - l.date;} else return r.count - l.count});
+    
+        if (numberOfSelectedTags == 0) {
+          document.getElementById("nothingmatches").style.display = "none";
+          document.getElementById("noexactmatches").style.display = "none";
+        } else if (sortedArticles.length == 0) {
+          document.getElementById("nothingmatches").style.display = "inherit";
+          document.getElementById("noexactmatches").style.display = "none";
+        } else if (sortedArticles[0].count != numberOfSelectedTags) {
+          document.getElementById("nothingmatches").style.display = "none";
+          document.getElementById("noexactmatches").style.display = "inherit";
+        } else {
+          document.getElementById("nothingmatches").style.display = "none";
+          document.getElementById("noexactmatches").style.display = "none";
+        }
+    
+        for (var article of sortedArticles) {
+          var articleClass = "";
+          if (numberOfSelectedTags > 1) {
+            var articleClass = (article.count == numberOfSelectedTags)?"exactmatch":"partialmatch";
+          }
+    
+          var listItemElement = createElementWithAttributes("li", {"class" : articleClass});
+          var aElement = createElementWithAttributes("a", {"href" : article.url}, article.title);
+    
+          listItemElement.appendChild(aElement);
+          targetElement.appendChild(listItemElement);
+        }
+      }
+    </script>
+    
+
     <header>{{article_menu}}</header>
     <h1>{{title}}</h1>
     {{article_content}}
