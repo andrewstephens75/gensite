@@ -332,7 +332,8 @@ def gensite(rootdir):
     fg.link(href= site_config.root_url, rel='alternate')
     fg.description(site_config.blog_description)
 
-    for entry in articles:
+    last_articles = articles[:15]
+    for entry in last_articles:
         dest_relative_url = entry.dest_relative_url();
         fe = fg.add_entry()
         link = site_config.root_url + dest_relative_url
