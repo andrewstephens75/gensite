@@ -113,7 +113,7 @@ class GenSiteTemplate:
             all_tag_titles.append(html.escape(tag.title, quote=True));
             all_tag_ids.append(tag.tag);
 
-        tag_link_text = "in <a href=\"/tagcloud.html#" + "+".join(all_tag_ids) + "\">" + ", ".join(all_tag_titles) + "</a>";
+        tag_link_text = "<a href=\"/tagcloud.html#" + "+".join(all_tag_ids) + "\">" + ", ".join(all_tag_titles) + "</a>";
 
         article_text = sourceFileDef.processed_text;
         summary = sourceFileDef.summary;
@@ -128,6 +128,9 @@ class GenSiteTemplate:
         html_source = self.replace_mustache_tag(html_source,"{{title}}", title, encode=True)
         html_source = self.replace_mustache_tag(html_source,"{{author}}", author, encode=True)
         html_source = self.replace_mustache_tag(html_source,"{{pretty_date}}", pretty_date(sourceFileDef.original_date))
+
+        iso_date = datetime.datetime.fromtimestamp(time.mktime(sourceFileDef.original_date), datetime.timezone.utc)
+        html_source = self.replace_mustache_tag(html_source,"{{iso_date}}", iso_date.strftime('%Y-%m-%dT%H:%M:%SZ'))
         html_source = self.replace_mustache_tag(html_source,"{{full_url}}", full_url)
         html_source = self.replace_mustache_tag(html_source,"{{tag_links}}", tag_link_text)
         html_source = self.replace_mustache_tag(html_source,"{{twitter_handle}}", site_config.twitter_handle, encode=True)
