@@ -22,10 +22,12 @@
 </head>
 <body>
   <header>{{article_menu}}</header>
-  <article>
-    <h1>{{title}}</h1>
-    <p class="byline">{{author}}, {{pretty_date}} {{tag_links}}</p>
+  <article itemprop="blogPost" itemscope itemtype="https://schema.org/BlogPosting">
+    <h1 itemprop="name headline">{{title}}</h1>
+    <p class="byline"><span itemprop="author" itemscope itemtype="https://schema.org/Person"><span itemprop="name">{{author}}</span></span>, <time itemprop="datePublished" datetime="{{iso_date}}">{{pretty_date}}</time> in <span itemprop="keywords">{{tag_links}}</span></p>
+    <div itemprop="articleBody">
     {{article_content}}
+    </div>
     <footer>Read similar articles {{tag_links}}</footer>
   </article>
 </body>
