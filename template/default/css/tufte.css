@@ -360,6 +360,7 @@ div.index div.group li
                                               margin-left: 10%;
                                               vertical-align: baseline;
                                               position: relative; }
+
       label { cursor: pointer; }
       pre.code { width: 98%;}
       .table-caption { display: block;
@@ -375,6 +376,13 @@ div.index div.group li
       div.table-wrapper, table, table.booktabs { width: 85%; }
       div.table-wrapper { border-right: 1px solid #efefef; }
       img { width: 100%; }
+
+      .importantmarginnote img {
+        max-height: 50vh;
+        min-width: auto;
+        width: auto;
+      }
+
       img.inline-icon { max-height: 1.5rem;
                         min-width: 0;
                         width: auto;
