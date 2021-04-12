@@ -153,7 +153,7 @@ class SourceFileDef(FileDef):
             p = os.path.join(p, self.output_filename + ".html")
             return p
         elif t == "index":
-            return "index.html"
+            return os.path.join(self.relative_path, self.output_filename + ".html")
         elif t == "tag_cloud":
             return "tagcloud.html"
         elif t == "static_page":
