@@ -6,3 +6,4 @@ websource
 *.pyc
 webbuild-old
 old blog posts.zip
+.DS_Store
