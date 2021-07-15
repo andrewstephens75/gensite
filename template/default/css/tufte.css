@@ -255,6 +255,10 @@ figure {
   margin: 0 0 3em 0;
 }
 
+figure img {
+  float: left;
+}
+
 figcaption {
   float: right;
   clear: right;
@@ -266,6 +270,10 @@ figcaption {
   vertical-align: baseline;
   position: relative;
   max-width: 40%;
+}
+
+figure.fullwidth img {
+  float: none;
 }
 
 figure.fullwidth figcaption {
@@ -444,6 +452,7 @@ div.table-wrapper {
   }
   figure {
     max-width: 100%;
+    float: none;
   }
   .fullwidth {
     max-width: 100%;
@@ -452,6 +461,9 @@ div.table-wrapper {
   figure.fullwidth figcaption {
     margin-right: 0%;
     max-width: 100%;
+  }
+  figure img {
+    float: none;
   }
   div.epigraph {
     margin: 0em;
