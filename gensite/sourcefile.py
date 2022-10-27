@@ -195,7 +195,11 @@ class SourceFileDef(FileDef):
         try:
             elements = lxml.html.fragments_fromstring(self.processed_text);
         except lxml.etree.XMLSyntaxError:
-            print("XMLSyntaxError when parsing markup")
+            print("XMLSyntaxError when parsing markup for ", self.file_name)
+            return
+        except lxml.etree.ParserError as x:
+            print(self.processed_text)
+            print("ParserError when parsing markup for: ", self.file_name)
             return
 
         summary = ""
