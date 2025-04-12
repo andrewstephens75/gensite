@@ -12,7 +12,7 @@ A static webside generator written in Python 3. I use this code to maintain my b
 
 ## Dependencies
 
-I try to keep the list of dependeccies very short. Please note that the Markdown python package
+I try to keep the list of dependencies very short. Please note that the Markdown python package
 introduced breaking changes so 2.6.11 is the last supported version that works.
 
 Python 3
@@ -22,3 +22,5 @@ pip3 install Markdown==2.6.11
 pip3 install Pygments
 
 pip3 feedgen
+
+pip3 exif

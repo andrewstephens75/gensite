@@ -16,6 +16,7 @@ import urllib
 
 from . import siteconfig
 from .errors import CompileError
+from . import imageutil
 
 
 def make_filename_safe_title(s):
@@ -68,6 +69,14 @@ class FileDef:
         with open(self.file_name, encoding="utf-8") as f:
             contents = f.read()
         return contents
+    
+    def isImageFile(self):
+        image_formats = [".jpg", ".jpeg", ".png", ".webp"]
+        for i in image_formats:
+            if (self.file_name.endswith(i)):
+                return True
+        return False
+
 
     def older(self, other):
         if (other.mod_time == 0):
@@ -88,6 +97,9 @@ class FileDef:
         if (os.path.exists(dest_file)):
             dest_time = os.path.getmtime(dest_file)
         if (dest_time == 0 or self.mod_time > dest_time):
+            if self.isImageFile():
+                if imageutil.copy_image_remove_gps(self.file_name, dest_file):
+                    return True
             shutil.copy2(self.file_name, dest_file)
             return True
         return False
