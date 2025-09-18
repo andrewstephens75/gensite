@@ -152,6 +152,10 @@ class GenSiteTemplate:
         html_source = self.replace_mustache_tag(
             html_source, "{{twitter_handle}}", site_config.twitter_handle, encode=True)
         html_source = self.replace_mustache_tag(
+            html_source, "{{mastodon_handle}}", site_config.mastodon_handle, encode=True)
+        html_source = self.replace_mustache_tag(
+            html_source, "{{mastodon_url}}", site_config.mastodon_url)
+        html_source = self.replace_mustache_tag(
             html_source, "{{first_words}}", summary, encode=True)
         html_source = self.replace_mustache_tag(
             html_source, "{{first_image}}", image_url)

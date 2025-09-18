@@ -21,6 +21,8 @@ class SiteConfig:
     with open(config_file_name, "r", encoding="utf-8") as f:
       site_config = json.load(f)
 
+    print(site_config)
+
     self.source_dir       = site_config["source_dir"]
     self.destination_dir  = site_config["destination_dir"]
     self.template         = site_config["template"]
@@ -31,6 +33,8 @@ class SiteConfig:
     self.relative_index   = site_config["relative_index"]
     self.navigation_menu  = site_config["navigation_menu"]
     self.twitter_handle   = site_config["twitter_handle"]
+    self.mastodon_handle  = site_config["mastodon_handle"]
+    self.mastodon_url     = site_config["mastodon_url"]
 
     self.allowed_tags = {}
     tags = site_config["allowed_tags"]
