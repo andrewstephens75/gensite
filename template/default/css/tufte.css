@@ -407,6 +407,10 @@ div.booktabs-wrapper {
   width: 55%;
 }
 
+article>footer {
+  clear: both;
+}
+
 div.fullwidth,
 table.fullwidth {
   width: 100%;

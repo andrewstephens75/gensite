@@ -21,7 +21,7 @@ class SiteConfig:
     with open(config_file_name, "r", encoding="utf-8") as f:
       site_config = json.load(f)
 
-    print(site_config)
+    # print(site_config)
 
     self.source_dir       = site_config["source_dir"]
     self.destination_dir  = site_config["destination_dir"]
