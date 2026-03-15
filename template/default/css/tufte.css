@@ -46,6 +46,10 @@
   font-style: normal;
 }
 
+:root {
+  color-scheme: light dark;
+}
+
 /* Tufte CSS styles */
 html {
   font-size: 15px;
@@ -54,8 +58,8 @@ html {
 nav {
   position: absolute;
   display: flex;
-  color: #000000;
-  background-color: #d2d2ff;
+  color: light-dark(#000000, lightgrey);
+  background-color: light-dark(#d2d2ff, #000000);
   width: 100%;
   top: 0px;
   left: 0px;
@@ -81,8 +85,8 @@ body {
   padding-left: 12.5%;
   font-family: et-book, Palatino, 'Palatino Linotype', 'Palatino LT STD',
     'Book Antiqua', Georgia, serif;
-  background-color: #fffff8;
-  color: #111;
+  background-color: light-dark(#fffff8, #111);
+  color: light-dark(#111, #fffff8);
   max-width: 1400px;
   counter-reset: sidenote-counter;
 }
@@ -288,6 +292,14 @@ a:link {
     -0.09em 0 #fffff8, 0.12em 0 #fffff8, -0.12em 0 #fffff8, 0.15em 0 #fffff8,
     -0.15em 0 #fffff8;
   background-position: 0% 93%, 100% 93%, 0% 93%;
+}
+
+@media(prefers-color-scheme: dark) {
+  a:link {
+    text-shadow: none;
+    text-decoration: underline;
+    background: none;
+  }
 }
 
 @media screen and (-webkit-min-device-pixel-ratio: 0) {
@@ -538,6 +550,7 @@ div.index div.groupheading {
 
 div.index div.group li {}
 
+
 @media (max-width: 760px),
 (orientation: portrait) {
   body {
@@ -637,6 +650,7 @@ div.index div.group li {}
     font-size: 1 rem;
   }
 }
+
 
 div.codehilite {
   overflow-x: auto;
@@ -1007,3 +1021,9 @@ div.codehilite {
 }
 
 /* Literal.Number.Integer.Long */
+
+@media(prefers-color-scheme: dark) {
+  div.codehilite {
+    filter: invert();
+  }
+}
