@@ -13,6 +13,7 @@
   <meta property="og:image" content="{{first_image}}">
   <meta property="twitter:card" content="summary">
   <meta property="twitter:title" content="{{title}}">
+  <meta name="fediverse:creator" content="{{mastodon_handle}}" />
 
   <link rel="stylesheet" href="{{css_relative_path}}css/tufte.css" type="text/css">
   <link rel="icon" href="/favicon.ico" type="image/png">
@@ -38,7 +39,7 @@
 
 <body class="staticpage">
   <script type="text/ecmascript">
-    var tag_database = {{tag_json}};
+    var tag_database = {{ tag_json }};
     document.addEventListener("DOMContentLoaded", function (event) {
       setupTags();
     });

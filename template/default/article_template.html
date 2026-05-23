@@ -14,6 +14,7 @@
   <meta property="og:image" content="{{first_image}}">
   <meta property="twitter:card" content="summary">
   <meta property="twitter:title" content="{{title}}">
+  <meta name="fediverse:creator" content="{{mastodon_handle}}" />
 
   <link rel="stylesheet" href="{{css_relative_path}}css/tufte.css" type="text/css">
   <link rel="icon" href="/favicon.ico" type="image/png">
@@ -31,8 +32,8 @@
     <div itemprop="articleBody">
       {{article_content}}
     </div>
-    <footer>Read similar articles {{tag_links}}. Contact me on Mastodon <a
-        href="{{mastodon_url}}">{{mastodon_handle}}</a></footer>
+    <footer>Read similar articles {{tag_links}}. Contact me on Mastodon <a href="{{mastodon_url}}"
+        rel="me">{{mastodon_handle}}</a></footer>
   </article>
 </body>
 
