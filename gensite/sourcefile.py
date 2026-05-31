@@ -71,7 +71,7 @@ class FileDef:
         return contents
     
     def isImageFile(self):
-        image_formats = [".jpg", ".jpeg", ".png", ".webp"]
+        image_formats = [".jpg", ".jpeg", ".png", ".webp", ".avif"]
         for i in image_formats:
             if (self.file_name.endswith(i)):
                 return True
