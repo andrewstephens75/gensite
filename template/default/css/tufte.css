@@ -245,6 +245,7 @@ figure {
 
 figure img {
   float: left;
+  margin-bottom: 1rem;
 }
 
 figcaption {
@@ -262,6 +263,7 @@ figcaption {
 
 figure.fullwidth img {
   float: none;
+  margin-bottom: 0rem;
 }
 
 figure.fullwidth figcaption {
@@ -475,6 +477,7 @@ div.table-wrapper {
 
   figure img {
     float: none;
+    margin-bottom: 0rem;
   }
 
   div.epigraph {
