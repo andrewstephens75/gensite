@@ -93,11 +93,12 @@ def _extractTagPositions(f:FileExtent):
         if (tagName[0] == '/'):
             oldTagName, oldTagContentsOffset = stack.pop()
             if ("/" + oldTagName != tagName):
-                raise Exception("Mismatched tag names {} {}" % (oldTagName, tagName))
+                raise Exception(f"Mismatched tag names {oldTagName} {tagName}")
             endContentsOffset = f.baseFile.tell() - len(tagName) - 2
             results.append((oldTagName, oldTagContentsOffset, endContentsOffset - oldTagContentsOffset))
         else:
-            stack.append((tagName, f.baseFile.tell()))
+            if (tagName[-1] != '/'):    # ignore self closing tags
+                stack.append((tagName, f.baseFile.tell()))
     return results
 
 
@@ -160,6 +161,13 @@ class AvifImage:
         result = struct.unpack(">I", bytes)[0]
         return result
 
+    def read8byteLength(self):
+        bytes = self.file.read(8)
+        if len(bytes) < 4:
+            return None
+        result = struct.unpack(">Q", bytes)[0]
+        return result
+
     def readBoxHeader(self):
         pos = self.file.tell()
         length = self.read4ByteLength()
@@ -173,7 +181,7 @@ class AvifImage:
             return None
         if length == 1:
             # 64 bit length stored after the name
-            length = self.readUnsigned8Bytes()
+            length = self.read8byteLength()
             dataOffset = pos + 16
             dataLength = length - 16
 
