@@ -1,8 +1,8 @@
 {
   "theme" : {
     "name" : "GenSite Default Theme",
-    "description" : "A theme based on the Tufte.css project from https://edwardtufte.github.io/tufte-css/",
-    "author" : "Andrew Stephens"
+      "description" : "A theme based on the Tufte.css project from https://edwardtufte.github.io/tufte-css/",
+        "author" : "Andrew Stephens"
   },
 
   "templates" : {
@@ -22,5 +22,5 @@
       "page_template" : "static_page_template.html"
     }
   },
-  "static_files" : ["css"]
+  "static_files" : ["css", "resources"]
 }
