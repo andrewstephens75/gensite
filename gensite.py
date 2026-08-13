@@ -12,6 +12,7 @@ import json
 import io
 import time
 import subprocess
+import shutil
 
 from gensite import files
 from gensite import siteconfig
@@ -107,13 +108,25 @@ def print_valid_tags():
   for t in site_config.allowed_tags:
     print("   ", t)
 
+def clean():
+  user_config = userconfig.read_user_config()
+  base_dir = user_config["source_dir"]
+  site_config = siteconfig.SiteConfig(base_dir)
+  dest_dir = os.path.join(base_dir, site_config.destination_dir)
+  answer = input(f"Removing {dest_dir}, are you sure (Y/N)?").lower()
+  if (answer == "y"):
+    shutil.rmtree(dest_dir)
+  else:
+    print("cancelled")
+
+
 def print_untagged():
    user_config = userconfig.read_user_config()
    base_dir = user_config["source_dir"]
    site_config = siteconfig.SiteConfig(base_dir)
 
    sourcedir = os.path.join(base_dir, site_config.source_dir)
-   all_source_files = files.gather_source_files(sourcedir, [".md"])
+   all_source_files = files.gather_source_files(sourcedir, [".md"], site_config)
    articles, unpublished_articles = files.get_articles(all_source_files)
 
    tags_for_articles, untagged = files.get_tags_for_articles(articles)
@@ -132,4 +145,5 @@ if __name__ == "__main__":
     'build' : build,
     'deploy' : deploy,
     'tags' : print_valid_tags,
+    'clean' : clean,
     'untagged' : print_untagged}[args.command]()
