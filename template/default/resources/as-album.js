@@ -7,32 +7,36 @@
 //     <a href="fullsize2.jpg"><img src=thumb2.jpg alt="image description"/></a>
 //     <a href="fullsize3.jpg"><img src=thumb3.jpg alt="image description"/></a>
 // </as-album>
+//
+// This component fires "picturechanged" events when a new image is selected
+//
+//
 
 
 
 const ALBUMTEMPLATE = `
-<figure id="albumdisplay">
-  <img id="display" src="" alt=""/>
-  <figcaption id="caption"></figcaption>
+<figure class="albumdisplay">
+  <img class="albumdisplayimage" src="" alt=""/>
+  <figcaption class="albumdisplaycaption"></figcaption>
 </figure>
-<div id="thumbscontainer">
+<div class="albumdisplaythumbscontainer">
 </div>
 `
 
 const ALBUMSTYLES = `
 
-#albumdisplay {
+figure.albumdisplay {
     width: 100%;
     max-width: 100%;
     margin: 0px;
 }
 
-#display {
+figure img.albumdisplayimage {
     object-fit: contain;
     max-width: 100%;
 }
 
-#thumbscontainer {
+.albumdisplaythumbscontainer {
   float: none;
   clear: both;
   display: grid;
@@ -48,14 +52,14 @@ const ALBUMSTYLES = `
 
 }
 
-#thumbscontainer img {
+.albumdisplaythumbscontainer img {
   width: 100%;
   height: 110px;
   object-fit: contain;
   box-sizing: border-box; 
 }
 
-#thumbscontainer img.selected {
+.albumdisplaythumbscontainer img.selected {
   border: red solid 5px;
   background-color: pink;
 }
@@ -64,6 +68,7 @@ const ALBUMSTYLES = `
 class AsAlbum extends HTMLElement {
     constructor() {
         super();
+        this._selectedPictureIndex = 0
     }
 
     connectedCallback() {
@@ -74,11 +79,9 @@ class AsAlbum extends HTMLElement {
             this.populateThumbs()
             this.setSelectThumbnailIndex(0)
         }).bind(this), 0)
-        console.log("Custom element added to page.");
     }
 
     attributeChangedCallback(name, oldValue, newValue) {
-        console.log(`Attribute ${name} has changed.`);
     }
 
     replaceContents() {
@@ -103,12 +106,11 @@ class AsAlbum extends HTMLElement {
 
             let picture = { "index": this._pictures.length, "fullsize_url": fullsize_url, "caption": caption, "thumb_url": thumb_url }
             this._pictures.push(picture)
-            console.log(picture)
         }
     }
 
     populateThumbs() {
-        let container = this.querySelector("#thumbscontainer")
+        let container = this.querySelector(".albumdisplaythumbscontainer")
         for (const i of this._pictures) {
             let image_element = document.createElement("img")
             image_element.src = i.thumb_url
@@ -120,20 +122,40 @@ class AsAlbum extends HTMLElement {
     }
 
     setSelectThumbnailIndex(index) {
-        let thumbContainer = this.querySelector("#thumbscontainer")
+        let thumbContainer = this.querySelector(".albumdisplaythumbscontainer")
 
-        let thumbElements = this.querySelectorAll("#thumbscontainer>img")
+        let thumbElements = thumbContainer.querySelectorAll("img")
         for (let i = 0; i < thumbElements.length; ++i) {
             let e = thumbElements[i]
             if (i == index) {
-                e.classList.add('selected')
+                if (e.classList.contains("selected")) {
+                    continue;   // already selected
+                }
+                this._selectedPictureIndex = index
+                e.classList.add("selected")
                 e.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" })
-                let mainImageElement = this.querySelector("#display")
-                let captionElement = this.querySelector("#caption")
+                let mainImageElement = this.querySelector(".albumdisplayimage")
+                let captionElement = this.querySelector(".albumdisplaycaption")
 
-                mainImageElement.src = this._pictures[index].fullsize_url
+                let thumbUrl = this._pictures[index].thumb_url
+                mainImageElement.src = thumbUrl
                 mainImageElement.setAttribute("alt", this._pictures[index].caption)
                 captionElement.innerHTML = this._pictures[index].caption
+
+                let event = new CustomEvent("picturechanged", { detail: this._pictures[index] })
+                this.dispatchEvent(event)
+
+                let fullsizedImage = new Image()
+                fullsizedImage.src = this._pictures[index].fullsize_url
+                fullsizedImage.setAttribute("alt", this._pictures[index].caption)
+                fullsizedImage.classList.add(...mainImageElement.classList)
+                fullsizedImage.decode().then((() => {
+                    if (this._selectedPictureIndex == index) {
+                        mainImageElement.replaceWith(fullsizedImage)
+                    }
+                }).bind(this)).catch((decodeError) => {
+                    console.log("Something went wrong decoding the full sized image: ", decodeError)
+                })
             } else {
                 e.classList.remove('selected')
             }

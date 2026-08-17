@@ -84,6 +84,7 @@ class GenSiteTemplate:
         header = sourceFileDef.metadata
         title = header["title"]
         author = header["author"]
+        additional_metadata_elements = header.get("additional_metadata_elements", [])
         template_type = sourceFileDef.template_type()
         full_url = site_config.root_url + sourceFileDef.dest_relative_url()
 
@@ -162,6 +163,10 @@ class GenSiteTemplate:
 
         html_source = html_source.replace(
             "{{css_relative_path}}", relative_path_to_top)
+
+        metadata_elements = "\n".join([str(element) for element in additional_metadata_elements])
+        html_source = self.replace_mustache_tag(
+            html_source, "{{additional_metadata_elements}}", metadata_elements)
 
         html_source = html_source.replace("{{article_content}}", article_text)
 
@@ -443,6 +448,7 @@ def create_new_article(base_dir, title, author, date, template_type="article", i
                 "template_type": "article",
                 "original_date": time.strftime("%a, %d %b %Y %H:%M:%SZ", date),
                 "tags": [],
+                "additional_metadata_elements" : [],
                 "publish": False
                 }
 
