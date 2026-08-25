@@ -77,7 +77,7 @@ class AsAlbum extends HTMLElement {
             this.getListOfPictures()
             this.replaceContents()
             this.populateThumbs()
-            this.setSelectThumbnailIndex(0)
+            this.setSelectThumbnailIndex(0, false)
         }).bind(this), 0)
     }
 
@@ -115,13 +115,15 @@ class AsAlbum extends HTMLElement {
             let image_element = document.createElement("img")
             image_element.src = i.thumb_url
             image_element.addEventListener("click", (() => {
-                this.setSelectThumbnailIndex(i.index);
+                this.setSelectThumbnailIndex(i.index, true);
             }).bind(this))
             container.appendChild(image_element)
         }
     }
 
-    setSelectThumbnailIndex(index) {
+    // Set the selected thumbnail and show the fullsized image
+    // Only scroll if in response to a user action
+    setSelectThumbnailIndex(index, scroll) {
         let thumbContainer = this.querySelector(".albumdisplaythumbscontainer")
 
         let thumbElements = thumbContainer.querySelectorAll("img")
@@ -133,7 +135,9 @@ class AsAlbum extends HTMLElement {
                 }
                 this._selectedPictureIndex = index
                 e.classList.add("selected")
-                e.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" })
+                if (scroll) {
+                    e.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" })
+                }
                 let mainImageElement = this.querySelector(".albumdisplayimage")
                 let captionElement = this.querySelector(".albumdisplaycaption")
 
