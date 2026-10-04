@@ -119,7 +119,7 @@ class SourceFileDef(FileDef):
             else:
                 self.output_filename = make_filename_safe_title(self.metadata["title"])
             self.processed_text = markdown.markdown(self.contents, extensions=["codehilite", "fenced_code", tufte_aside.TufteAsideExtension(), tufte_figure.TufteFigureExtension()])
-            self.summarize_markup();
+            self.generate_summary()
         except Exception as err:
             raise CompileError(str(err), file_name)
 
@@ -202,10 +202,16 @@ class SourceFileDef(FileDef):
     def images(self):
         return self.images
 
-    def summarize_markup(self):
-        """ parse some markup and try to extract some meaningful text """
+    def author(self):
+        return self.metadata["author"]
+
+    def get_parsed_html(self):
+        return lxml.html.fragments_fromstring(self.processed_text);
+
+    def get_content_for_feeds(self):
+        """ parse the html, make all the links absolute """
         try:
-            elements = lxml.html.fragments_fromstring(self.processed_text);
+            elements = self.get_parsed_html()
         except lxml.etree.XMLSyntaxError:
             print("XMLSyntaxError when parsing markup for ", self.file_name)
             return
@@ -213,7 +219,26 @@ class SourceFileDef(FileDef):
             print(self.processed_text)
             print("ParserError when parsing markup for: ", self.file_name)
             return
+        text_list = []
+        root = (self.site_config.root_url + self.dest_relative_url())
+        for e in elements:
+            e.make_links_absolute(root)
+            text_list.append(lxml.html.tostring(e, encoding="utf-8").decode("utf-8"))
+        return "".join(text_list)
 
+
+    def generate_summary(self):
+        """ parse the html, extract the first 30 (or so) words """
+        try:
+            elements = self.get_parsed_html()
+        except lxml.etree.XMLSyntaxError:
+            print("XMLSyntaxError when parsing markup for ", self.file_name)
+            return
+        except lxml.etree.ParserError as x:
+            print(self.processed_text)
+            print("ParserError when parsing markup for: ", self.file_name)
+            return
+        
         summary = ""
 
         for e in elements:

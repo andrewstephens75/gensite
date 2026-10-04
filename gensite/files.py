@@ -83,7 +83,7 @@ class GenSiteTemplate:
         """ process a source file and output the files required """
         header = sourceFileDef.metadata
         title = header["title"]
-        author = header["author"]
+        author = sourceFileDef.author()
         additional_metadata_elements = header.get("additional_metadata_elements", [])
         template_type = sourceFileDef.template_type()
         full_url = site_config.root_url + sourceFileDef.dest_relative_url()
@@ -391,14 +391,15 @@ def gensite(rootdir):
         fe.link(link={"href": link})
 
         if (entry.summary == ""):
-            fe.summary(entry.title())
+            fe.summary(entry.title(), type="CDATA")
         else:
-            fe.summary(entry.summary)
+            fe.summary(entry.summary, type="CDATA")
 
         date = datetime.datetime.fromtimestamp(
             time.mktime(entry.original_date), UTC())
         fe.published(date)
         fe.updated(date)
+        fe.content(entry.get_content_for_feeds(), type="CDATA")
 
     fg.rss_file(os.path.join(destdir, 'rss.xml'), pretty=True)
     fg.atom_file(os.path.join(destdir, 'atom.xml'), pretty=True)
