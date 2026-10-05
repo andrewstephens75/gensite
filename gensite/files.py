@@ -402,7 +402,21 @@ def gensite(rootdir):
         fe.content(entry.get_content_for_feeds(), type="CDATA")
 
     fg.rss_file(os.path.join(destdir, 'rss.xml'), pretty=True)
-    fg.atom_file(os.path.join(destdir, 'atom.xml'), pretty=True)
+
+    # feedgen has a weird and incorrect way of generating atom feeds where it explicitly
+    # sets the type of content nodes to CDATA, which is incorrect. Manually go through and
+    # set them to "html"
+    atom_string = fg.atom_str(pretty=True)
+
+    parser = lxml.etree.XMLParser(strip_cdata=False)
+    atom_root = lxml.etree.fromstring(atom_string, parser)
+    cdata_nodes = atom_root.xpath("//*[@type='CDATA']")
+    for node in cdata_nodes:
+        node.set('type', 'html')
+    
+    atom_string = lxml.etree.tostring(atom_root, pretty_print=True,  method='xml').decode()
+    with open(os.path.join(destdir, 'atom.xml'), "w", encoding="utf-8") as file:
+        file.write(atom_string)
 
     index_element = template.generate_index(articles)
     index = [e for e in files if e.template_type() == "index"][0]
