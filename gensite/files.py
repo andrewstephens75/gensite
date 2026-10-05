@@ -390,11 +390,6 @@ def gensite(rootdir):
         fe.title(entry.title())
         fe.link(link={"href": link})
 
-        if (entry.summary == ""):
-            fe.summary(entry.title(), type="CDATA")
-        else:
-            fe.summary(entry.summary, type="CDATA")
-
         date = datetime.datetime.fromtimestamp(
             time.mktime(entry.original_date), UTC())
         fe.published(date)
