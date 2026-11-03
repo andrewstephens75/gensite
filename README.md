@@ -27,16 +27,16 @@ Dependencies are now managed with [uv](https://docs.astral.sh/uv/).
 
 Install `uv`. Then gensite can be invoked by `uv run gensite.py <command>`.
 
-`uv run gensite.py init` - creates a new blog at the current directory. Edit the config file to customize.
+`uv run gensite init` - creates a new blog at the current directory. Edit the config file to customize.
 
-`uv run gensite.py new` - creates a new post.
+`uv run gensite new` - creates a new post.
 
-`uv run gensite.py build` - compiles the blog source and copies all files into the destination directory.
+`uv run gensite build` - compiles the blog source and copies all files into the destination directory.
 
-`uv run gensite.py deploy` - runs the configured deploy command to upload built files to your webserver
+`uv run gensite deploy` - runs the configured deploy command to upload built files to your webserver
 
-`uv run gensite.py tags` - prints the configured tags
+`uv run gensite tags` - prints the configured tags
 
-`uv run gensite.py clean` - completely cleans the build directory, forcing reprocessing every file on the next `build`
+`uv run gensite clean` - completely cleans the build directory, forcing reprocessing every file on the next `build`
 
 
