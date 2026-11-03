@@ -9,3 +9,10 @@ dependencies = [
     "markdown==2.6.11",   # latest version that works with the custom plugins
     "pygments>=2.21.0",
 ]
+
+[project.scripts]
+    gensite="gensite.cli:main"
+
+[build-system]
+requires = ["uv-build>=0.1.0"]
+build-backend = "uv_build"

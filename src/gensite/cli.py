@@ -134,8 +134,7 @@ def print_untagged():
    for i in untagged:
        print(i.file_name)
 
-
-if __name__ == "__main__":
+def main():
   parser = argparse.ArgumentParser()
   parser.add_argument("command", choices=["init", "build", "deploy", "clean", "new", "untagged", "tags"])
   args = parser.parse_args()
@@ -147,3 +146,6 @@ if __name__ == "__main__":
     'tags' : print_valid_tags,
     'clean' : clean,
     'untagged' : print_untagged}[args.command]()
+
+if __name__ == "__main__":
+  main()
