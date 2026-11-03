@@ -25,7 +25,7 @@ class SiteConfig:
 
     self.source_dir       = site_config["source_dir"]
     self.destination_dir  = site_config["destination_dir"]
-    self.template         = site_config["template"]
+    self.template         = self._resolve_template_dir(site_config["template"])
     self.blog_name        = site_config["blog_name"]
     self.blog_description = site_config["blog_description"]
     self.blog_author      = site_config["blog_author"]
@@ -43,3 +43,13 @@ class SiteConfig:
 
   def is_tag_allowed(self, tag):
     return tag in self.allowed_tags
+
+  def _resolve_template_dir(self, template):
+    templateDir = os.path.expanduser(template)
+    if os.path.isabs(templateDir):
+      return templateDir       # absolute path, nothing to do
+    template_in_site = os.path.join(self.site_dir, template)
+    if os.path.isdir(template_in_site):
+      return os.path.abspath(template_in_site)
+    repo_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    return os.path.join(repo_root, "template", template)

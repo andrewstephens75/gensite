@@ -42,12 +42,12 @@ def init():
 
   site_metadata = {
     "source_dir" : ".",
-    "destination_dir" : "/Users/andrew/Source/gensite/webbuild",
-    "template" : "/Users/andrew/Source/gensite/template/default",
-    "blog_name" : "Andrew's Blog",
+    "destination_dir" : "<path/to/build/folder",
+    "template" : "default",
+    "blog_name" : "Name of Blog",
     "blog_description" : "A blog about stuff",
-    "blog_author" : "Andrew Stephens",
-    "root_url" : "http://sheep.horse/",
+    "blog_author" : "Your Name Here",
+    "root_url" : "http://example.com/",
     "relative_index" : "/",
     "allowed_tags" : []
   }
