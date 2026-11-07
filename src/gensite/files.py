@@ -107,22 +107,10 @@ class GenSiteTemplate:
                 "Unknown template type: " + template_type, sourceFileDef.file_name)
 
         """ Calculate the list of tags for this article"""
-        article_tags = []
-        for tag_name in sourceFileDef.tags():
-            if not site_config.is_tag_allowed(tag_name):
-                raise errors.CompileError(
-                    "Unknown tag: " + tag_name + ". Add to site config file to use.", sourceFileDef.file_name)
-            article_tags.append(site_config.allowed_tags[tag_name])
-
-        article_tags.sort(key=lambda s: s.title)
-        all_tag_ids = []
-        all_tag_titles = []
-        for tag in article_tags:
-            all_tag_titles.append(html.escape(tag.title, quote=True))
-            all_tag_ids.append(tag.tag)
+        tag_titles, tag_ids = self.construct_tag_url_for_file(site_config, sourceFileDef)
 
         tag_link_text = "<a href=\"/tagcloud.html#" + \
-            "+".join(all_tag_ids) + "\">" + ", ".join(all_tag_titles) + "</a>"
+            tag_ids + "\">" + tag_titles + "</a>"
 
         article_text = sourceFileDef.processed_text
         summary = sourceFileDef.summary
@@ -180,7 +168,49 @@ class GenSiteTemplate:
                 num_copied += 1
         print("Copied " + str(num_copied) + " modified template files")
 
-    def generate_index(self, all_files):
+    def construct_tag_url_for_file(self, site_config, sourceFileDef):
+        # returns strings suitable for using in urls
+        article_tags = []
+        for tag_name in sourceFileDef.tags():
+            if not site_config.is_tag_allowed(tag_name):
+                raise errors.CompileError(
+                    "Unknown tag: " + tag_name + ". Add to site config file to use.", sourceFileDef.file_name)
+            article_tags.append(site_config.allowed_tags[tag_name])
+
+        article_tags.sort(key=lambda s: s.title)
+        all_tag_ids = []
+        all_tag_titles = []
+        for tag in article_tags:
+            all_tag_titles.append(html.escape(tag.title, quote=True))
+            all_tag_ids.append(tag.tag)
+        return ", ".join(all_tag_titles), "+".join(all_tag_ids)
+
+    def construct_article_link(self, site_config, source_file):
+        # <li>
+        #   <div class="articlelink">
+        #     <div class="link"><a href="uri">title</a></div>
+        #     <div class="tags">(tags1, tags2)</div>
+        #   </div>
+        # </li>
+        root = lxml.html.Element("li")
+        div_articlelink = lxml.html.Element("div", {"class": "articlelink"})
+        div_link = lxml.html.Element("div", {"class": "link"})
+        link = lxml.html.Element("a", {"href": source_file.dest_relative_url()})
+        link.text = source_file.title()
+        div_link.append(link)
+
+        tag_titles, tag_ids = self.construct_tag_url_for_file(site_config, source_file)
+        div_tags = lxml.html.Element("div", {"class": "tags"})
+        tag_link = lxml.html.Element("a", {"href": "/tagcloud.html#" + tag_ids})
+        tag_link.text = tag_titles
+        div_tags.append(tag_link)
+
+        div_articlelink.append(div_link)
+        div_articlelink.append(div_tags)
+        root.append(div_articlelink)
+        return root
+
+    def generate_index(self, site_config, all_files):
         all_files.sort(key=lambda s: s.original_date)
         all_files.reverse()
 
@@ -215,13 +245,9 @@ class GenSiteTemplate:
                 current_group_date = date
                 current_group_len = 0
 
-            title = f.title()
-            template_type = f.template_type()
-            item = lxml.html.Element("li")
-            link = lxml.html.Element("a", {"href": f.dest_relative_url()})
-            link.text = f.title()
-            item.append(link)
+            item = self.construct_article_link(site_config, f)
             list_element.append(item)
+
             current_group_len += 1
         emit_grouped_list(list_element)
         return index_element
@@ -413,7 +439,7 @@ def gensite(rootdir):
     with open(os.path.join(destdir, 'atom.xml'), "w", encoding="utf-8") as file:
         file.write(atom_string)
 
-    index_element = template.generate_index(articles)
+    index_element = template.generate_index(site_config, articles)
     index = [e for e in files if e.template_type() == "index"][0]
     i = str(lxml.etree.tostring(index_element, pretty_print=True), "utf-8")
     template.process_source_file(index, destdir, site_config, additional_mustache_tags={
