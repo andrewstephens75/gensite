@@ -8,13 +8,24 @@
 #    </figure>
 
 from markdown import Extension
-from markdown.inlinepatterns import IMAGE_LINK_RE, IMAGE_REFERENCE_RE, NOBRACKET, BRK
 from markdown.blockprocessors import BlockProcessor
-from markdown.util import etree
+import xml.etree.ElementTree as etree
 import re 
 
+# copied from markdown 2.6 inlinepatterns.py because these definitions have been removed in 3.0
+NOBRACKET = r'[^\]\[]*'
+BRK = (
+    r'\[(' +
+    (NOBRACKET + r'(\[')*6 +
+    (NOBRACKET + r'\])*')*6 +
+    NOBRACKET + r')\]'
+)
+
+IMAGE_LINK_RE = r'\!' + BRK + r'\s*\(\s*(<.*?>|([^"\)\s]+\s*"[^"]*"|[^\)\s]*))\s*\)'
+IMAGE_REFERENCE_RE = r'\!' + BRK + r'\s?\[([^\]]*)\]'
+
 # start whitespace  image, whitespace  line ends
-FIGURES = [u'^\s*'+IMAGE_LINK_RE+u'(!?)\s*$',  u'^\s*'+IMAGE_REFERENCE_RE+u'\s*$']
+FIGURES = [r'^\s*'+IMAGE_LINK_RE+r'(!?)\s*$',  r'^\s*'+IMAGE_REFERENCE_RE+r'\s*$']
 
 class TufteFigure(BlockProcessor):
   FIGURES_RE = re.compile('|'.join(f for f in FIGURES))
@@ -33,7 +44,8 @@ class TufteFigure(BlockProcessor):
       raw_block = blocks.pop(0)
       
       match = self.FIGURES_RE.search(raw_block)
-      captionText = match.group(1)
+      # group 1 is the alt text for ![alt](url); group 11 for ![alt][ref]
+      captionText = match.group(1) if match.group(1) is not None else match.group(11)
       trailingBang = match.group(10)
 
       figure = etree.SubElement(parent, 'figure')
@@ -48,10 +60,11 @@ class TufteFigure(BlockProcessor):
       figcaptionElem.text = captionText 
       
 class TufteFigureExtension(Extension):
-    def extendMarkdown(self, md, md_globals):
-        md.parser.blockprocessors.add('figureAltcaption',
-                                      TufteFigure(md.parser),
-                                      '<ulist')
+    def extendMarkdown(self, md):
+        # '<ulist' in the 2.6 API meant "just before ulist". In Markdown 3,
+        # olist is 40 and ulist is 30, so 35 slots it in the same place.
+        md.parser.blockprocessors.register(TufteFigure(md.parser),
+                                           'figureAltcaption', 35)
 
-def makeExtension(configs={}):
-    return TufteFigureExtension(configs=configs)
+def makeExtension(**kwargs):
+    return TufteFigureExtension(**kwargs)
