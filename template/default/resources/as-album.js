@@ -52,11 +52,21 @@ figure img.albumdisplayimage {
 
 }
 
+.albumdisplaythumbscontainer button {
+  width: 100%;
+  height: 110px;
+  object-fit: contain;
+  box-sizing: border-box; 
+  cursor: pointer;
+  padding: 0px;
+}
+
 .albumdisplaythumbscontainer img {
   width: 100%;
   height: 110px;
   object-fit: contain;
   box-sizing: border-box; 
+  cursor: pointer;
 }
 
 .albumdisplaythumbscontainer img.selected {
@@ -112,12 +122,14 @@ class AsAlbum extends HTMLElement {
     populateThumbs() {
         let container = this.querySelector(".albumdisplaythumbscontainer")
         for (const i of this._pictures) {
+            let button_element = document.createElement("button")
             let image_element = document.createElement("img")
             image_element.src = i.thumb_url
-            image_element.addEventListener("click", (() => {
+            button_element.addEventListener("click", (() => {
                 this.setSelectThumbnailIndex(i.index, true);
             }).bind(this))
-            container.appendChild(image_element)
+            button_element.appendChild(image_element)
+            container.appendChild(button_element)
         }
     }
 
