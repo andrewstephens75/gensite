@@ -59,6 +59,7 @@ figure img.albumdisplayimage {
   box-sizing: border-box; 
   cursor: pointer;
   padding: 0px;
+  border: none;
 }
 
 .albumdisplaythumbscontainer img {
